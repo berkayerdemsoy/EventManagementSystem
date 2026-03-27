@@ -1,0 +1,28 @@
+services:
+
+  eureka-server:
+    build:
+      context: ./EurekaServer
+      dockerfile: Dockerfile
+    image: eurekaserver:latest
+    container_name: eurekaserver
+    ports:
+      - "${SERVER_PORT:-8761}:8761"
+    env_file:
+      - ./EurekaServer/.env
+    environment:
+      - SERVER_PORT=${SERVER_PORT:-8761}
+      - EUREKA_HOSTNAME=eureka-server
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+networks:
+  microservices-network:
+    driver: bridge
