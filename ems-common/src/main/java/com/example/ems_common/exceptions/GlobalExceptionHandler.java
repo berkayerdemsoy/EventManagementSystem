@@ -4,15 +4,15 @@ import com.example.ems_common.dto.ErrorResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler({NotFoundException.class})
-    public ResponseEntity<Object> handleNotFoundException(NotFoundException ex,
+    public ResponseEntity<ErrorResponseDto> handleNotFoundException(NotFoundException ex,
                                                           HttpServletRequest request) {
 
         ErrorResponseDto error = new ErrorResponseDto(
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
     @ExceptionHandler({AlreadyExistsException.class})
-    public ResponseEntity<Object> handleAlreadyExistsException(AlreadyExistsException ex,
+    public ResponseEntity<ErrorResponseDto> handleAlreadyExistsException(AlreadyExistsException ex,
                                                               HttpServletRequest request) {
         ErrorResponseDto error = new ErrorResponseDto(
                 "ALREADY_EXISTS",
@@ -41,11 +41,11 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
     @ExceptionHandler({RuntimeException.class})
-    public ResponseEntity<Object> handleRuntimeException(RuntimeException ex,
+    public ResponseEntity<ErrorResponseDto> handleRuntimeException(RuntimeException ex,
                                                           HttpServletRequest request) {
         ErrorResponseDto error = new ErrorResponseDto(
                 "INTERNAL_SERVER_ERROR",
-                ex.getMessage(),
+                "An unexpected error occurred",
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 LocalDateTime.now(),
                 request.getRequestURI()

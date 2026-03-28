@@ -1,5 +1,7 @@
 package com.example.user_service_app.serviceImpl;
 
+import com.example.ems_common.exceptions.AlreadyExistsException;
+import com.example.ems_common.exceptions.NotFoundException;
 import com.example.user_service_app.entity.User;
 import com.example.user_service_app.mapper.UserMapper;
 import com.example.user_service_app.repository.UserRepository;
@@ -25,23 +27,26 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public UserResponseDto getUserById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         return userMapper.toResponseDto(user);
     }
 
     @Override
     public UserResponseDto getUserByUsername(String username) {
-        User user = userRepository.findByUsernameIgnoreCase(username).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByUsernameIgnoreCase(username).orElseThrow(() -> new NotFoundException("User not found"));
         return userMapper.toResponseDto(user);
     }
     @Override
     public UserResponseDto createUser(UserCreateDto dto) {
+        if(userRepository.existsByUsernameIgnoreCase(dto.getUsername())) {
+            throw new AlreadyExistsException("User with this username already exists");
+        }
         User user = userMapper.toEntity(dto);
         return userMapper.toResponseDto(userRepository.save(user));
     }
     @Override
     public UserResponseDto updateUser(Long id, UserUpdateDto dto) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         userMapper.updateUserFromDto(dto, user);
         userMapper.updateUserProfileFromDto(dto, user.getUserProfile());
         return userMapper.toResponseDto(user);
@@ -49,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUserById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         userRepository.delete(user);
     }
 }
