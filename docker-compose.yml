@@ -48,6 +48,9 @@ services:
     build:
       context: ./UserService
       dockerfile: Dockerfile
+      args:
+        GITHUB_ACTOR: ${GITHUB_ACTOR}
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
     image: user-service:latest
     container_name: ems-user-service
     ports:
@@ -74,6 +77,7 @@ services:
     networks:
       - microservices-network
     restart: unless-stopped
+
 
 volumes:
   user-service-db-data:
