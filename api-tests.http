@@ -1,0 +1,12 @@
+### GET request to example server
+POST http://localhost:8080/users/create
+Content-Type: application/json
+
+{
+  "username": "berkay",
+  "password": "admin",
+  "email": "yeniberkayyeni@gmail.com"
+}
+###
+POST http://localhost:8080/users/verify-email/7
+###

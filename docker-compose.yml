@@ -63,6 +63,9 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       EUREKA_URL: http://eureka-server:8761/eureka
+      ADMIN_USERNAMES: ${ADMIN_USERNAMES}
+      ADMIN_PASSWORDS: ${ADMIN_PASSWORDS}
+      RESEND_API_KEY: ${RESEND_API_KEY}
     depends_on:
       eureka-server:
         condition: service_healthy

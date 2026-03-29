@@ -1,4 +1,4 @@
-package com.example.user_service_app.configs;
+package com.example.user_service_app.configs.adminLoginConfigs;
 
 import lombok.Getter;
 import lombok.Setter;

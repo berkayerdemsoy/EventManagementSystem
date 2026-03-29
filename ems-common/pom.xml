@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.example</groupId>
 	<artifactId>ems-common</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.5 </version>
 	<name>ems-common</name>
 	<description>Common module for Event Management System</description>
 	<url/>

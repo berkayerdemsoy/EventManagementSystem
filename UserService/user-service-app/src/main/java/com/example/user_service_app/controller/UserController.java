@@ -65,4 +65,16 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
+    @PostMapping("/verify-email/{id}")
+    public ResponseEntity<String> verifyEmail(@PathVariable Long id){
+        userService.verifyUserEmail(id);
+        return ResponseEntity.ok("Verification email sent successfully");
+    }
+
+    @GetMapping("/confirm-email")
+    public ResponseEntity<String> confirmEmail(@RequestParam String token){
+        userService.confirmEmail(token);
+        return ResponseEntity.ok("Email verified successfully");
+    }
+
 }

@@ -16,4 +16,6 @@ public interface UserService {
     void deleteUserById(Long id);
     void beOwner(Long id);
     UserResponseDto login(UserLoginDto dto);
+    void verifyUserEmail(Long id);
+    void confirmEmail(String token);
 }
