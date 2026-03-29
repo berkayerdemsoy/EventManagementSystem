@@ -32,3 +32,7 @@ management:
   endpoint:
     health:
       show-details: always
+
+admin:
+  usernames: ${ADMIN_USERNAMES:}
+  passwords: ${ADMIN_PASSWORDS:}

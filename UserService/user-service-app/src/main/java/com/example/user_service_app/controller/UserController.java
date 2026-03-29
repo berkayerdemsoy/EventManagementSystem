@@ -2,6 +2,7 @@ package com.example.user_service_app.controller;
 
 import com.example.user_service_app.service.UserService;
 import com.example.user_service_client.dto.UserCreateDto;
+import com.example.user_service_client.dto.UserLoginDto;
 import com.example.user_service_client.dto.UserResponseDto;
 import com.example.user_service_client.dto.UserUpdateDto;
 import lombok.RequiredArgsConstructor;
@@ -51,4 +52,17 @@ public class UserController {
         UserResponseDto user = userService.updateUser(id, dto);
         return ResponseEntity.ok(user);
     }
+
+    @PostMapping("/owner/{id}")
+    public ResponseEntity<Void> beOwner(@PathVariable Long id){
+        userService.beOwner(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<UserResponseDto> login(@RequestBody UserLoginDto dto){
+        UserResponseDto user = userService.login(dto);
+        return ResponseEntity.ok(user);
+    }
+
 }

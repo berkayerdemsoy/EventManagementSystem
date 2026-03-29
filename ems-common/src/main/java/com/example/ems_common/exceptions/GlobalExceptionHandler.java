@@ -54,6 +54,34 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(error);
     }
+    @ExceptionHandler({InvalidCredentialsException.class})
+    public ResponseEntity<ErrorResponseDto> handleInvalidCredentialsException(RuntimeException ex,
+                                                                              HttpServletRequest request) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                "INVALID_CREDENTIALS",
+                ex.getMessage(),
+                HttpStatus.UNAUTHORIZED.value(),
+                LocalDateTime.now(),
+                request.getRequestURI()
+        );
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(error);
+    }
+    @ExceptionHandler({ForbiddenException.class})
+    public ResponseEntity<ErrorResponseDto> handleForbiddenException(RuntimeException ex,
+                                                              HttpServletRequest request) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                "FORBIDDEN",
+                ex.getMessage(),
+                HttpStatus.FORBIDDEN.value(),
+                LocalDateTime.now(),
+                request.getRequestURI()
+        );
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(error);
+    }
 }
 
 

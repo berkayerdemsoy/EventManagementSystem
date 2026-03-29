@@ -1,6 +1,7 @@
 package com.example.user_service_app.service;
 
 import com.example.user_service_client.dto.UserCreateDto;
+import com.example.user_service_client.dto.UserLoginDto;
 import com.example.user_service_client.dto.UserResponseDto;
 import com.example.user_service_client.dto.UserUpdateDto;
 import org.springframework.data.domain.Page;
@@ -13,4 +14,6 @@ public interface UserService {
     UserResponseDto createUser(UserCreateDto dto);
     UserResponseDto updateUser(Long id, UserUpdateDto dto);
     void deleteUserById(Long id);
+    void beOwner(Long id);
+    UserResponseDto login(UserLoginDto dto);
 }

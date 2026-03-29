@@ -32,5 +32,11 @@ public interface UserServiceClient {
 
     @PostExchange("/update/{id}")
     UserResponseDto updateUser(@PathVariable("id") Long id, @RequestBody UserUpdateDto dto);
+
+    @PostExchange("/owner/{id}")
+    UserResponseDto beOwner(@PathVariable("id") Long id);
+
+    @PostExchange("/login")
+    void login(@RequestBody UserLoginDto dto);
 }
 
