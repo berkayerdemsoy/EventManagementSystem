@@ -66,6 +66,8 @@ services:
       ADMIN_USERNAMES: ${ADMIN_USERNAMES}
       ADMIN_PASSWORDS: ${ADMIN_PASSWORDS}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
     depends_on:
       eureka-server:
         condition: service_healthy

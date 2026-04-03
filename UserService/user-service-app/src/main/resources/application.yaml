@@ -55,3 +55,7 @@ management:
 admin:
   usernames: ${ADMIN_USERNAMES:}
   passwords: ${ADMIN_PASSWORDS:}
+
+jwt:
+  secret: ${JWT_SECRET:your_jwt_secret_key}
+  expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds

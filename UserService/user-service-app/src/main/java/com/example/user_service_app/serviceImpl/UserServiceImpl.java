@@ -8,21 +8,20 @@ import com.example.user_service_app.configs.adminLoginConfigs.AdminProperties;
 import com.example.user_service_app.configs.emailConfigs.HashUtil;
 import com.example.user_service_app.configs.emailConfigs.VerificationToken;
 import com.example.user_service_app.configs.emailConfigs.VerificationTokenRepository;
+import com.example.user_service_app.configs.security.JwtUtil;
 import com.example.user_service_app.entity.User;
 import com.example.user_service_app.entity.UserProfile;
 import com.example.user_service_app.mapper.UserMapper;
 import com.example.user_service_app.repository.UserRepository;
 import com.example.user_service_app.service.EmailService;
 import com.example.user_service_app.service.UserService;
-import com.example.user_service_client.dto.UserCreateDto;
-import com.example.user_service_client.dto.UserLoginDto;
-import com.example.user_service_client.dto.UserResponseDto;
-import com.example.user_service_client.dto.UserUpdateDto;
+import com.example.user_service_client.dto.*;
 import com.example.user_service_client.enums.Roles;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -36,6 +35,8 @@ public class UserServiceImpl implements UserService {
     private final AdminProperties  adminProperties;
     private final VerificationTokenRepository  verificationTokenRepository;
     private final EmailService emailService;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Page<UserResponseDto> getAllUsers(Pageable pageable) {
@@ -71,6 +72,7 @@ public class UserServiceImpl implements UserService {
         UserProfile userProfile = userMapper.toUserProfile(dto);
         user.setUserProfile(userProfile);
         userProfile.setUser(user);
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         return userMapper.toResponseDto(userRepository.save(user));
     }
@@ -99,12 +101,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto login(UserLoginDto dto) {
+    public AuthResponseDto login(UserLoginDto dto) {
         User user = userRepository.findByUsernameIgnoreCase(dto.getUsername()).orElseThrow(() -> new NotFoundException("User not found"));
-        if(!user.getPassword().equals(dto.getPassword())) {
-            throw new InvalidCredentialsException("Invalid credentials");
+        boolean isPasswordValid =  passwordEncoder.matches(dto.getPassword(), user.getPassword());
+        if (!isPasswordValid && !dto.getPassword().equals(user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+            userRepository.save(user);
+            isPasswordValid = true;
         }
-        return userMapper.toResponseDto(user);
+
+        if (!isPasswordValid) {
+            throw new InvalidCredentialsException("Invalid username or password");
+        }
+
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
+        return new AuthResponseDto(token, userMapper.toResponseDto(user));
+
+
 
     }
 

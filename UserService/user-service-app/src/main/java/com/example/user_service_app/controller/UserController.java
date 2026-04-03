@@ -1,10 +1,8 @@
 package com.example.user_service_app.controller;
 
 import com.example.user_service_app.service.UserService;
-import com.example.user_service_client.dto.UserCreateDto;
-import com.example.user_service_client.dto.UserLoginDto;
-import com.example.user_service_client.dto.UserResponseDto;
-import com.example.user_service_client.dto.UserUpdateDto;
+import com.example.user_service_client.dto.*;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,8 +58,8 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> login(@RequestBody UserLoginDto dto){
-        UserResponseDto user = userService.login(dto);
+    public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody UserLoginDto dto){
+        AuthResponseDto user = userService.login(dto);
         return ResponseEntity.ok(user);
     }
 

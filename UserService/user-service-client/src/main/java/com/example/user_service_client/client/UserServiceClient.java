@@ -37,6 +37,6 @@ public interface UserServiceClient {
     UserResponseDto beOwner(@PathVariable("id") Long id);
 
     @PostExchange("/login")
-    void login(@RequestBody UserLoginDto dto);
+    AuthResponseDto login(@RequestBody UserLoginDto dto);
 }
 
