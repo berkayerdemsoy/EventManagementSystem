@@ -8,7 +8,8 @@ import com.example.user_service_app.configs.adminLoginConfigs.AdminProperties;
 import com.example.user_service_app.configs.emailConfigs.HashUtil;
 import com.example.user_service_app.configs.emailConfigs.VerificationToken;
 import com.example.user_service_app.configs.emailConfigs.VerificationTokenRepository;
-import com.example.user_service_app.configs.security.JwtUtil;
+import com.example.ems_common.security.JwtUtil;
+import com.example.ems_common.security.SecurityUtils;
 import com.example.user_service_app.entity.User;
 import com.example.user_service_app.entity.UserProfile;
 import com.example.user_service_app.mapper.UserMapper;
@@ -78,6 +79,7 @@ public class UserServiceImpl implements UserService {
     }
     @Override
     public UserResponseDto updateUser(Long id, UserUpdateDto dto) {
+        enforceOwnershipOrAdmin(id);
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         userMapper.updateUserFromDto(dto, user);
         userMapper.updateUserProfileFromDto(dto, user.getUserProfile());
@@ -92,6 +94,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void beOwner(Long id) {
+        enforceOwnershipOrAdmin(id);
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         if (!user.isVerified()) {
             throw new ForbiddenException("User is not verified");
@@ -124,6 +127,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public void verifyUserEmail(Long id) {
+        enforceOwnershipOrAdmin(id);
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         String email =  user.getEmail();
 
@@ -160,5 +164,16 @@ public class UserServiceImpl implements UserService {
         verificationTokenRepository.delete(verificationToken);
     }
 
+    /**
+     * Checks that the current user owns the resource or is an ADMIN.
+     * Throws ForbiddenException otherwise.
+     */
+    private void enforceOwnershipOrAdmin(Long resourceOwnerId) {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        String currentRole = SecurityUtils.getCurrentRole();
+        if (!"ADMIN".equals(currentRole) && !resourceOwnerId.equals(currentUserId)) {
+            throw new ForbiddenException("You do not have permission to perform this action");
+        }
+    }
 
 }

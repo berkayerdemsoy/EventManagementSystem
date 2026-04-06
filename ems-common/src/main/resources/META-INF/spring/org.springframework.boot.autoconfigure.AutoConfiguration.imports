@@ -1,2 +1,3 @@
 com.example.ems_common.config.CommonAutoConfiguration
 com.example.ems_common.config.InterceptorAutoConfiguration
+com.example.ems_common.security.SecurityAutoConfiguration

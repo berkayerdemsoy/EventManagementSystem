@@ -1,5 +1,6 @@
 package com.example.user_service_app.configs.security;
 
+import com.example.ems_common.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
