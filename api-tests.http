@@ -1,12 +1,220 @@
-### GET request to example server
+### ===== Gateway üzerinden (port 8090) =====
+
+### 1. Create User (public - no auth needed)
+POST http://localhost:8090/users/create
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "password123",
+  "email": "testuser@gmail.com",
+  "firstName": "Test",
+  "lastName": "User",
+  "phoneNumber": "5551234567"
+}
+
+> {%
+    client.test("Create User - should return 201", function () {
+        client.assert(response.status === 201, "Expected 201 Created");
+        client.assert(response.body.username === "testuser");
+        client.global.set("created_user_id", response.body.id);
+    });
+%}
+
+###
+### 2. Create User - Duplicate (should fail 409)
+POST http://localhost:8090/users/create
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "password123",
+  "email": "testuser@gmail.com"
+}
+
+> {%
+    client.test("Duplicate User - should return 409", function () {
+        client.assert(response.status === 409, "Expected 409 Conflict");
+        client.assert(response.body.code === "ALREADY_EXISTS");
+    });
+%}
+
+###
+### 3. Login (public - no auth needed)
+POST http://localhost:8090/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "password"
+}
+
+> {%
+    client.test("Login - should return 200 with token", function () {
+        client.assert(response.status === 200, "Expected 200 OK");
+        client.assert(response.body.token !== null, "Token should not be null");
+        client.global.set("auth_token", response.body.token);
+        client.global.set("admin_id", response.body.user.id);
+    });
+%}
+
+###
+### 4. Login - Wrong Password (should fail 401)
+POST http://localhost:8090/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "wrongpassword"
+}
+
+> {%
+    client.test("Bad Login - should return 401", function () {
+        client.assert(response.status === 401, "Expected 401 Unauthorized");
+        client.assert(response.body.code === "INVALID_CREDENTIALS");
+    });
+%}
+
+###
+### 5. Get User by ID (authenticated)
+GET http://localhost:8090/users/id/{{created_user_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get User by ID - should return 200", function () {
+        client.assert(response.status === 200, "Expected 200 OK");
+        client.assert(response.body.id !== null);
+    });
+%}
+
+###
+### 6. Get User by ID - Not Found (should fail 404)
+GET http://localhost:8090/users/id/99999
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get User by ID (not found) - should return 404", function () {
+        client.assert(response.status === 404, "Expected 404 Not Found");
+    });
+%}
+
+###
+### 7. Get User by Username (authenticated)
+GET http://localhost:8090/users/username/testuser
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get User by Username - should return 200", function () {
+        client.assert(response.status === 200, "Expected 200 OK");
+        client.assert(response.body.username === "testuser");
+    });
+%}
+
+###
+### 8. Update User (authenticated)
+POST http://localhost:8090/users/update/{{created_user_id}}
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "firstName": "Updated",
+  "lastName": "Name",
+  "phoneNumber": "5559999999"
+}
+
+> {%
+    client.test("Update User - should return 200", function () {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+%}
+
+###
+### 9. Verify Email (authenticated)
+POST http://localhost:8090/users/verify-email/{{created_user_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Verify Email - should return 200", function () {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+%}
+
+###
+### 10. Be Owner - Not Verified (should fail 403)
+POST http://localhost:8090/users/owner/{{created_user_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Be Owner (not verified) - should return 403", function () {
+        client.assert(response.status === 403, "Expected 403 Forbidden");
+    });
+%}
+
+###
+### 11. Get All Users - ADMIN only (paginated)
+GET http://localhost:8090/users/all?page=0&size=20
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Get All Users (ADMIN) - should return 200", function () {
+        client.assert(response.status === 200, "Expected 200 OK");
+        client.assert(response.body.content !== null, "Content should not be null");
+    });
+%}
+
+###
+### 12. Delete User - ADMIN only
+DELETE http://localhost:8090/users/{{created_user_id}}
+Authorization: Bearer {{auth_token}}
+
+> {%
+    client.test("Delete User (ADMIN) - should return 204", function () {
+        client.assert(response.status === 204, "Expected 204 No Content");
+    });
+%}
+
+###
+### 13. No Auth - should fail 401
+GET http://localhost:8090/users/id/1
+
+> {%
+    client.test("No Auth - should return 401", function () {
+        client.assert(response.status === 401, "Expected 401 Unauthorized");
+    });
+%}
+
+###
+
+### ===== Direkt UserService (local dev - port 8080) =====
+
+### Create User (direct)
 POST http://localhost:8080/users/create
 Content-Type: application/json
 
 {
-  "username": "berkay",
-  "password": "admin",
-  "email": "yeniberkayyeni@gmail.com"
+  "username": "admin",
+  "password": "password",
+  "email": "admin@gmail.com"
 }
+
 ###
-POST http://localhost:8080/users/verify-email/7
+### Login (direct)
+POST http://localhost:8080/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "password"
+}
+
+> {%
+    client.test("Direct Login - should return token", function () {
+        client.assert(response.status === 200);
+        client.global.set("direct_token", response.body.token);
+    });
+%}
+
 ###
+### Get User by ID (direct)
+GET http://localhost:8080/users/id/1
+Authorization: Bearer {{direct_token}}

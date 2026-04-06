@@ -102,22 +102,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthResponseDto login(UserLoginDto dto) {
-        User user = userRepository.findByUsernameIgnoreCase(dto.getUsername()).orElseThrow(() -> new NotFoundException("User not found"));
-        boolean isPasswordValid =  passwordEncoder.matches(dto.getPassword(), user.getPassword());
-        if (!isPasswordValid && !dto.getPassword().equals(user.getPassword())) {
-            user.setPassword(passwordEncoder.encode(dto.getPassword()));
-            userRepository.save(user);
-            isPasswordValid = true;
-        }
+        User user = userRepository.findByUsernameIgnoreCase(dto.getUsername())
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
 
-        if (!isPasswordValid) {
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Invalid username or password");
         }
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
         return new AuthResponseDto(token, userMapper.toResponseDto(user));
-
-
 
     }
 
