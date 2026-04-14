@@ -1,6 +1,7 @@
 package com.example.event_service_app.repository;
 
 import com.example.event_service_app.entity.Event;
+import com.example.event_service_client.enums.EventStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
