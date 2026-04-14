@@ -12,6 +12,16 @@ spring:
               predicates:
                 - Path=/users/**
 
+            - id: event-service-events
+              uri: lb://event-service-app
+              predicates:
+                - Path=/events/**
+
+            - id: event-service-categories
+              uri: lb://event-service-app
+              predicates:
+                - Path=/categories/**
+
       global-cors:
         cors-configurations:
           '[/**]':

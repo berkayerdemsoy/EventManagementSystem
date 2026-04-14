@@ -108,9 +108,70 @@ services:
       - microservices-network
     restart: unless-stopped
 
+  event-service-db:
+    image: postgres:17-alpine
+    container_name: event-service-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: event_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - event-service-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+  event-service:
+    build:
+      context: .
+      dockerfile: event-service/Dockerfile
+      args:
+        GITHUB_ACTOR: ${GITHUB_ACTOR}
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    image: event-service:latest
+    container_name: ems-event-service
+    expose:
+      - "8081"
+    environment:
+      SERVER_PORT: 8081
+      DB_HOST: event-service-db
+      DB_PORT: 5432
+      DB_NAME: event_service_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      EUREKA_URL: http://eureka-server:8761/eureka
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      USER_SERVICE_URL: http://ems-user-service:8080
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      event-service-db:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
 
 volumes:
   user-service-db-data:
+  event-service-db-data:
 
 networks:
   microservices-network:

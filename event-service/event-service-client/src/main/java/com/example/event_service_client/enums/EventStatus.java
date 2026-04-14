@@ -1,4 +1,4 @@
-package com.example.event_service_client.client;
+package com.example.event_service_client.enums;
 
 public enum EventStatus {
     UPCOMING,
@@ -6,3 +6,4 @@ public enum EventStatus {
     COMPLETED,
     CANCELLED
 }
+
