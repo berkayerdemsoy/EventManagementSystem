@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClient;
  * All service-to-service client configs can inject this builder by name.
  */
 @AutoConfiguration
+//bu sekilde compile asamasinda bellege yukleyerek kontrol etmesini engellemis oluyor. direkt olarak string kontrolu yapip cikiyor.(diger yontem Loadbalancer.class)
 @ConditionalOnClass(name = "org.springframework.cloud.client.loadbalancer.LoadBalanced")
 public class LoadBalancerAutoConfiguration {
 
