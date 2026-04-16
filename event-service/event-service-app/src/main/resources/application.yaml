@@ -41,5 +41,3 @@ jwt:
   secret: ${JWT_SECRET:your_jwt_secret_key}
   expiration: ${JWT_EXPIRATION:3600000}
 
-user-service:
-  url: ${USER_SERVICE_URL:http://localhost:8080}

@@ -150,7 +150,6 @@ services:
       EUREKA_URL: http://eureka-server:8761/eureka
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
-      USER_SERVICE_URL: http://ems-user-service:8080
     depends_on:
       eureka-server:
         condition: service_healthy

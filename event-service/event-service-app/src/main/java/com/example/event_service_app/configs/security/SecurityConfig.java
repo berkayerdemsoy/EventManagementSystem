@@ -37,7 +37,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/categories/**").hasRole("ADMIN")
 
-                        // Event create/update/delete → authenticated
+                        // Event update/delete → EVENT_OWNER or ADMIN only
+                        .requestMatchers(HttpMethod.PUT, "/events/**").hasAnyRole("EVENT_OWNER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/events/**").hasAnyRole("EVENT_OWNER", "ADMIN")
+
+                        // Event create → any authenticated user (beOwner auto-promotes)
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

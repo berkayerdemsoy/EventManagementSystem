@@ -1,7 +1,6 @@
 package com.example.event_service_client.client;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -15,16 +14,20 @@ import java.util.List;
 @Configuration
 public class EventServiceClientConfig {
 
-    @Value("${event-service.url:http://localhost:8081}")
-    private String eventServiceBaseUrl;
+    private static final String SERVICE_URL = "http://event-service-app";
 
     @Autowired(required = false)
     private List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
 
     @Bean
-    public EventServiceClient eventServiceClient() {
-        RestClient restClient = RestClient.builder()
-                .baseUrl(eventServiceBaseUrl)
+    public EventServiceClient eventServiceClient(
+            @Autowired(required = false) @org.springframework.beans.factory.annotation.Qualifier("loadBalancedRestClientBuilder")
+            RestClient.Builder lbBuilder) {
+
+        RestClient.Builder builder = (lbBuilder != null) ? lbBuilder : RestClient.builder();
+
+        RestClient restClient = builder
+                .baseUrl(SERVICE_URL)
                 .requestInterceptors(list -> list.addAll(interceptors))
                 .build();
 
