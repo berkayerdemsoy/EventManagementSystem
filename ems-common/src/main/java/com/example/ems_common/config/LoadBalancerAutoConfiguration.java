@@ -12,7 +12,7 @@ import org.springframework.web.client.RestClient;
  * All service-to-service client configs can inject this builder by name.
  */
 @AutoConfiguration
-@ConditionalOnClass(LoadBalanced.class)
+@ConditionalOnClass(name = "org.springframework.cloud.client.loadbalancer.LoadBalanced")
 public class LoadBalancerAutoConfiguration {
 
     @Bean("loadBalancedRestClientBuilder")
