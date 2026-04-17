@@ -35,6 +35,8 @@ server:
 
 eureka:
   client:
+    webclient:
+      enabled: false
     service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
   instance:
@@ -59,3 +61,5 @@ admin:
 jwt:
   secret: ${JWT_SECRET:your_jwt_secret_key}
   expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds
+
+
