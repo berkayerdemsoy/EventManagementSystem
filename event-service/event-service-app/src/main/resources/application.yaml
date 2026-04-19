@@ -24,9 +24,14 @@ server:
 
 eureka:
   client:
+    rest-template:
+      enabled: true
+    restclient:
+      enabled: false
     webclient:
       enabled: false
-  service-url:
+    fetch-registry: true
+    service-url:
       defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
   instance:
     prefer-ip-address: true

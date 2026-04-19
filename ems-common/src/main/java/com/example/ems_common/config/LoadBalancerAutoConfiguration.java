@@ -4,6 +4,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestClient;
 
 /**
@@ -16,7 +17,14 @@ import org.springframework.web.client.RestClient;
 @ConditionalOnClass(name = "org.springframework.cloud.client.loadbalancer.LoadBalanced")
 public class LoadBalancerAutoConfiguration {
 
-    @Bean("loadBalancedRestClientBuilder")
+    @Bean
+    @Primary
+    public RestClient.Builder restClientBuilder() {
+        return RestClient.builder();
+    }
+
+
+    @Bean(name = "loadBalancedRestClientBuilder")
     @LoadBalanced
     public RestClient.Builder loadBalancedRestClientBuilder() {
         return RestClient.builder();
