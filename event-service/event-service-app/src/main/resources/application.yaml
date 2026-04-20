@@ -25,16 +25,19 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: false
-  # ─── Quartz (DB tabanlı kilit — horizontal scale uyumlu) ─────────────────────
+  # ─── Quartz (DB tabanlı distributed lock — horizontal scale uyumlu) ─────────
   quartz:
-    job-store-type: jdbc           # JdbcJobStore: DB'de distributed lock
+    job-store-type: jdbc
     jdbc:
-      initialize-schema: always    # QRTZ_* tablolarını otomatik oluşturur
+      initialize-schema: always
     properties:
       org.quartz.jobStore.isClustered: true
       org.quartz.jobStore.clusterCheckinInterval: 20000
       org.quartz.scheduler.instanceId: AUTO
       org.quartz.scheduler.instanceName: EventServiceScheduler
+      # PostgreSQL için zorunlu — binary blob yerine String saklama
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.jobStore.useProperties: true
 
 kafka:
   topics:
