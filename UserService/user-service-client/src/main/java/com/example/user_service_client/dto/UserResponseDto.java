@@ -13,7 +13,7 @@ public class UserResponseDto {
     private String username;
     private String email;
     private Roles role;
-    private boolean isVerified;
+    private boolean verified;
     private String createdAt;
 
     // UserProfile alanları (flat)
