@@ -59,6 +59,14 @@
 		</dependency>
 	</dependencies>
 
+	<repositories>
+		<repository>
+			<id>github</id>
+			<name>Github Packages</name>
+			<url>https://maven.pkg.github.com/berkayerdemsoy/ems-common</url>
+		</repository>
+	</repositories>
+
 	<build>
 		<plugins>
 			<plugin>

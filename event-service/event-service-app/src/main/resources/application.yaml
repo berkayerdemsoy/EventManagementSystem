@@ -18,6 +18,27 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+  # ─── Quartz (DB tabanlı kilit — horizontal scale uyumlu) ─────────────────────
+  quartz:
+    job-store-type: jdbc           # JdbcJobStore: DB'de distributed lock
+    jdbc:
+      initialize-schema: always    # QRTZ_* tablolarını otomatik oluşturur
+    properties:
+      org.quartz.jobStore.isClustered: true
+      org.quartz.jobStore.clusterCheckinInterval: 20000
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.scheduler.instanceName: EventServiceScheduler
+
+kafka:
+  topics:
+    notification-events: notification-events
 
 server:
   port: ${SERVER_PORT:8081}
@@ -49,29 +70,7 @@ jwt:
   secret: ${JWT_SECRET:your_jwt_secret_key}
   expiration: ${JWT_EXPIRATION:3600000}
 
-# ─── Kafka Producer ───────────────────────────────────────────────────────────
 
-  kafka:
-    bootstrap-servers: ${KAFKA_BROKERS:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: false
 
-kafka:
-  topics:
-    notification-events: notification-events
-
-# ─── Quartz (DB tabanlı kilit — horizontal scale uyumlu) ─────────────────────
-  quartz:
-    job-store-type: jdbc           # JdbcJobStore: DB'de distributed lock
-    jdbc:
-      initialize-schema: always    # QRTZ_* tablolarını otomatik oluşturur
-    properties:
-      org.quartz.jobStore.isClustered: true
-      org.quartz.jobStore.clusterCheckinInterval: 20000
-      org.quartz.scheduler.instanceId: AUTO
-      org.quartz.scheduler.instanceName: EventServiceScheduler
 
 
