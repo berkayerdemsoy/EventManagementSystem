@@ -16,6 +16,7 @@ public class EventResponseDto {
     private String title;
     private String description;
     private Long ownerId;
+    private String ownerEmail;
     private String address;
     private String city;
     private Long capacity;

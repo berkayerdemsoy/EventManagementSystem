@@ -15,6 +15,7 @@ public interface EventMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "ownerId", ignore = true)
+    @Mapping(target = "ownerEmail", ignore = true)
     @Mapping(target = "currentAttendees", constant = "0L")
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "category", ignore = true)
@@ -25,6 +26,7 @@ public interface EventMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "ownerId", ignore = true)
+    @Mapping(target = "ownerEmail", ignore = true)
     @Mapping(target = "currentAttendees", ignore = true)
     @Mapping(target = "status", ignore = true)
     @Mapping(target = "category", ignore = true)

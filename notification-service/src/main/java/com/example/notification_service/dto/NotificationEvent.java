@@ -1,10 +1,9 @@
 package com.example.notification_service.dto;
 
-import lombok.Data;
-
-@Data
+/**
+ * @deprecated Kullanım dışı. Lütfen {@link com.example.ems_common.dto.NotificationEvent} kullanın.
+ * Bu sınıf geriye dönük uyumluluk için tutulmaktadır; silinebilir.
+ */
+@Deprecated
 public class NotificationEvent {
-    private Long userId;
-    private String message;
-    private String type; // sms , email , push
 }

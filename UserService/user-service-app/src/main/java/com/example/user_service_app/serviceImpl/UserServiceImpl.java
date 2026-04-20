@@ -1,5 +1,7 @@
 package com.example.user_service_app.serviceImpl;
 
+import com.example.ems_common.dto.NotificationEvent;
+import com.example.ems_common.dto.NotificationEventType;
 import com.example.ems_common.exceptions.AlreadyExistsException;
 import com.example.ems_common.exceptions.ForbiddenException;
 import com.example.ems_common.exceptions.InvalidCredentialsException;
@@ -8,12 +10,12 @@ import com.example.user_service_app.configs.adminLoginConfigs.AdminProperties;
 import com.example.user_service_app.configs.emailConfigs.HashUtil;
 import com.example.user_service_app.configs.emailConfigs.VerificationToken;
 import com.example.user_service_app.configs.emailConfigs.VerificationTokenRepository;
+import com.example.user_service_app.kafka.NotificationEventProducer;
 import com.example.ems_common.security.JwtUtil;
 import com.example.user_service_app.entity.User;
 import com.example.user_service_app.entity.UserProfile;
 import com.example.user_service_app.mapper.UserMapper;
 import com.example.user_service_app.repository.UserRepository;
-import com.example.user_service_app.service.EmailService;
 import com.example.user_service_app.service.UserService;
 import com.example.user_service_client.dto.*;
 import com.example.user_service_client.enums.Roles;
@@ -32,9 +34,9 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final AdminProperties  adminProperties;
-    private final VerificationTokenRepository  verificationTokenRepository;
-    private final EmailService emailService;
+    private final AdminProperties adminProperties;
+    private final VerificationTokenRepository verificationTokenRepository;
+    private final NotificationEventProducer notificationEventProducer;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
@@ -131,7 +133,11 @@ public class UserServiceImpl implements UserService {
 
         String verificationLink = "http://localhost:8080/users/confirm-email?token=" + plainToken;
 
-        emailService.sendVerificationEmail(email,verificationLink);
+        notificationEventProducer.send(NotificationEvent.builder()
+                .eventType(NotificationEventType.EMAIL_VERIFICATION)
+                .recipientEmail(email)
+                .payload(java.util.Map.of("verificationLink", verificationLink))
+                .build());
     }
 
     @Transactional

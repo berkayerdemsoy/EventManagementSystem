@@ -45,8 +45,8 @@ POST http://localhost:8090/users/login
 Content-Type: application/json
 
 {
-  "username": "admin",
-  "password": "password"
+  "username": "berkay",
+  "password": "admin"
 }
 
 > {%
@@ -218,3 +218,323 @@ Content-Type: application/json
 ### Get User by ID (direct)
 GET http://localhost:8080/users/id/1
 Authorization: Bearer {{direct_token}}
+
+###
+# =============================================================================
+#  KAFKA NOTIFICATION AKIŞLARI — E2E TEST SENARYOLARI
+# =============================================================================
+#
+#  ⚠️  EMAIL NOTU:
+#  Resend free tier kullanıyorsanız iki seçeneğiniz var:
+#    1) Resend dashboard'dan doğruladığınız kendi e-posta adresinizi kullanın.
+#       (resend.com → Audiences → Verified Emails)
+#    2) Resend test modunda "delivered@resend.dev" adresi her zaman çalışır.
+#
+#  Aşağıdaki testlerde {{test_email}} değişkenini bir kez set edip
+#  tüm akışta o değişkeni kullanıyoruz.
+#  Bunu ya global variables'tan set edin ya da ilk isteğin script bloğundan:
+#
+#    client.global.set("test_email", "sizin@dogrulanmis-email.com");
+#
+# =============================================================================
+
+### [SETUP] — Test email'ini ayarla (bunu bir kez çalıştır)
+# Bu isteği doğrudan çalıştırmak zorunda değilsiniz.
+# Sadece global değişkeni set etmek için aşağıdaki script bloğunu kullanın:
+
+GET http://localhost:8090/users/id/1
+Authorization: Bearer {{auth_token}}
+
+> {%
+    // ❗ BURAYA KENDİ DOĞRULANMIŞ EMAİLİNİZİ YAZIN
+    client.global.set("test_email", "delivered@resend.dev");
+    // Örnek: client.global.set("test_email", "siz@sirketiniz.com");
+%}
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+#  AKIŞ 1: EMAIL_VERIFICATION
+#  User oluştur → verify-email endpoint'i çağır
+#  → Kafka'ya EMAIL_VERIFICATION eventi düşer
+#  → Notification Service maili gönderir
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [NOTIF-1] Gerçek e-posta ile yeni kullanıcı oluştur
+POST http://localhost:8090/users/create
+Content-Type: application/json
+
+{
+  "username": "notif_test_user",
+  "password": "Test1234!",
+  "email": "{{test_email}}",
+  "firstName": "Notif",
+  "lastName": "Test",
+  "phoneNumber": "5550000001"
+}
+
+> {%
+    client.test("NOTIF-1: Kullanıcı oluşturuldu (201)", function () {
+        client.assert(response.status === 201, "Expected 201 Created");
+        client.global.set("notif_user_id", response.body.id);
+        client.global.set("notif_username", response.body.username);
+    });
+%}
+
+###
+### [NOTIF-2] Admin ile giriş yap (test için admin token)
+POST http://localhost:8090/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "password"
+}
+
+> {%
+    client.test("NOTIF-2: Admin login (200)", function () {
+        client.assert(response.status === 200);
+        client.global.set("admin_token", response.body.token);
+    });
+%}
+
+###
+### [NOTIF-3] ✉️  verify-email → Kafka'ya EMAIL_VERIFICATION eventi
+###           → Notification Service "Hesabınızı Doğrulayın" maili gönderir
+POST http://localhost:8090/users/verify-email/{{notif_user_id}}
+Authorization: Bearer {{admin_token}}
+
+> {%
+    client.test("NOTIF-3: verify-email çağrıldı (200) — mail gelmeli", function () {
+        client.assert(response.status === 200, "Expected 200 OK");
+    });
+%}
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+#  AKIŞ 2: EVENT_OWNER_WELCOME
+#  notif_test_user olarak login ol → event oluştur
+#  → createEvent ownerEmail'i set eder + Kafka'ya EVENT_OWNER_WELCOME eventi
+#  → Notification Service "Etkinliğiniz Oluşturuldu" maili gönderir
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [NOTIF-4] notif_test_user ile login (kendi token'ını al)
+POST http://localhost:8090/users/login
+Content-Type: application/json
+
+{
+  "username": "notif_test_user",
+  "password": "Test1234!"
+}
+
+> {%
+    client.test("NOTIF-4: notif_test_user login (200)", function () {
+        client.assert(response.status === 200);
+        client.global.set("notif_user_token", response.body.token);
+        client.global.set("notif_user_id", response.body.user.id);
+    });
+%}
+
+###
+### [NOTIF-5] Önce kullanıcıyı admin ile verified yap (e-posta doğrulandı simüle)
+###           (gerçekte confirm-email linke tıklanır ama test ortamında admin confirm eder)
+POST http://localhost:8090/users/confirm-email?token=DUMMY_TOKEN
+Authorization: Bearer {{admin_token}}
+
+> {%
+    // Bu istek geçersiz token ile 404 döner — normal.
+    // Gerçek test için: NOTIF-3'ten gelen mail linkine tıkla,
+    // sonra notif_test_user'ın isVerified = true olur.
+    client.log("Confirm email — gerçek tokenı mail linkinden alın.");
+%}
+
+###
+### [NOTIF-6] ✉️  Event oluştur → Kafka'ya EVENT_OWNER_WELCOME eventi
+###           (önce kullanıcının verified=true olması gerekir)
+###           Not: NOTIF-3 sonrası maildeki linke tıkladıktan sonra çalıştırın
+POST http://localhost:8090/events
+Content-Type: application/json
+Authorization: Bearer {{notif_user_token}}
+
+{
+  "title": "Kafka Test Etkinliği",
+  "description": "Bu etkinlik notification akışlarını test etmek için oluşturuldu.",
+  "address": "Teknoloji Caddesi No:1",
+  "city": "Istanbul",
+  "capacity": 100,
+  "price": 0.00,
+  "categoryId": 1,
+  "startDate": "2026-06-01T18:00:00",
+  "endDate": "2026-06-01T21:00:00"
+}
+
+> {%
+    client.test("NOTIF-6: Event oluşturuldu (201) — owner welcome maili gelmeli", function () {
+        client.assert(response.status === 201, "Expected 201 Created");
+        client.global.set("notif_event_id", response.body.id);
+    });
+%}
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+#  AKIŞ 3: PARTICIPANT_REGISTERED
+#  Farklı bir kullanıcı oluştur → aynı e-posta ile etkinliğe kayıt ol
+#  → Kafka'ya PARTICIPANT_REGISTERED eventi
+#  → Notification Service "Kaydınız Onaylandı" maili gönderir
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [NOTIF-7] İkinci kullanıcı oluştur (katılımcı)
+POST http://localhost:8090/users/create
+Content-Type: application/json
+
+{
+  "username": "participant_user",
+  "password": "Test1234!",
+  "email": "{{test_email}}",
+  "firstName": "Participant",
+  "lastName": "User",
+  "phoneNumber": "5550000002"
+}
+
+> {%
+    client.test("NOTIF-7: Katılımcı kullanıcı oluşturuldu (201)", function () {
+        // Aynı email kullanılıyorsa 409 dönebilir — test_email unique olmalı
+        // ya da farklı bir email deneyin
+        client.assert(response.status === 201 || response.status === 409,
+            "201 veya 409 bekleniyor");
+        if (response.status === 201) {
+            client.global.set("participant_user_id", response.body.id);
+        }
+    });
+%}
+
+###
+### [NOTIF-8] Katılımcı olarak login
+POST http://localhost:8090/users/login
+Content-Type: application/json
+
+{
+  "username": "participant_user",
+  "password": "Test1234!"
+}
+
+> {%
+    client.test("NOTIF-8: Katılımcı login (200)", function () {
+        client.assert(response.status === 200);
+        client.global.set("participant_token", response.body.token);
+    });
+%}
+
+###
+### [NOTIF-9] ✉️  Etkinliğe kayıt ol → Kafka'ya PARTICIPANT_REGISTERED eventi
+###           → Notification Service "Kaydınız Onaylandı" maili gönderir
+POST http://localhost:8090/participations
+Content-Type: application/json
+Authorization: Bearer {{participant_token}}
+
+{
+  "eventId": {{notif_event_id}},
+  "participantEmail": "{{test_email}}"
+}
+
+> {%
+    client.test("NOTIF-9: Participation oluşturuldu (201) — onay maili gelmeli", function () {
+        client.assert(response.status === 201, "Expected 201 Created");
+        client.global.set("participation_id", response.body.id);
+    });
+%}
+
+###
+### [NOTIF-10] Etkinliğin katılımcılarını listele (kayıt doğrulama)
+GET http://localhost:8090/participations/event/{{notif_event_id}}
+Authorization: Bearer {{notif_user_token}}
+
+> {%
+    client.test("NOTIF-10: Katılımcılar listelendi (200)", function () {
+        client.assert(response.status === 200);
+        client.assert(response.body.length >= 1, "En az 1 katılımcı olmalı");
+        client.log("Katılımcı emaili: " + response.body[0].participantEmail);
+    });
+%}
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+#  AKIŞ 4: EVENT_REMINDER (Quartz Job — otomatik)
+#  Reminder otomatik tetiklenir (saatlik cron), manuel tetiklemek için
+#  test ortamında startDate'i şu andan 24 saat sonraya ayarlayın.
+#
+#  Kontrol yöntemi: event-service-app loglarını izleyin:
+#    [ReminderJob] Taranıyor: <from> - <to>
+#    [ReminderJob] Hatırlatıcı gönderildi: participantEmail=...
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [NOTIF-11] Reminder için 24 saat sonra başlayan test etkinliği oluştur
+POST http://localhost:8090/events
+Content-Type: application/json
+Authorization: Bearer {{notif_user_token}}
+
+{
+  "title": "Reminder Test Etkinliği",
+  "description": "Quartz job reminder testı — 24 saat sonra başlar.",
+  "address": "Test Sokak No:5",
+  "city": "Ankara",
+  "capacity": 50,
+  "price": 0.00,
+  "categoryId": 1,
+  "startDate": "2026-04-21T12:00:00",
+  "endDate": "2026-04-21T15:00:00"
+}
+
+> {%
+    client.test("NOTIF-11: Reminder test etkinliği oluşturuldu (201)", function () {
+        client.assert(response.status === 201, "Expected 201 Created");
+        client.global.set("reminder_event_id", response.body.id);
+    });
+%}
+
+###
+### [NOTIF-12] Reminder etkinliğine katılımcı kayıt et
+POST http://localhost:8090/participations
+Content-Type: application/json
+Authorization: Bearer {{participant_token}}
+
+{
+  "eventId": {{reminder_event_id}},
+  "participantEmail": "{{test_email}}"
+}
+
+> {%
+    client.test("NOTIF-12: Reminder etkinliğine katılım (201) — Quartz job bekleniyor", function () {
+        client.assert(response.status === 201, "Expected 201 Created");
+        client.log("Quartz job bir sonraki saat başında çalışacak.");
+        client.log("Log: [ReminderJob] Hatırlatıcı gönderildi: participantEmail=" + "{{test_email}}");
+    });
+%}
+
+###
+# ─────────────────────────────────────────────────────────────────────────────
+#  AKIŞ 5: DLQ TESTİ
+#  Notification service durdurulduğunda (SMTP çöktü simülasyonu)
+#  mesajlar 3 retry sonrası notification-events-dlq'ya düşer.
+#
+#  Test yöntemi:
+#    1) notification-service'i durdur (docker stop notification-service)
+#    2) verify-email çağır → mesaj Kafka'ya düşer
+#    3) Kafka UI'dan notification-events-dlq topic'ini kontrol et
+#    4) notification-service'i yeniden başlat — DLQ'daki mesajlar işlenmez
+#       (DLQ manuel müdahale gerektirir — bu tasarım gereği)
+# ─────────────────────────────────────────────────────────────────────────────
+
+### [NOTIF-DLQ] DLQ simülasyonu için tekrar verify-email çağır
+###             (notification-service kapalıyken çalıştırın)
+POST http://localhost:8090/users/verify-email/{{notif_user_id}}
+Authorization: Bearer {{admin_token}}
+
+> {%
+    client.test("NOTIF-DLQ: verify-email tetiklendi — DLQ'yu Kafka UI'dan kontrol edin", function () {
+        client.assert(response.status === 200, "Expected 200 OK");
+        client.log("notification-events-dlq topic'ini Kafka UI'dan kontrol edin.");
+    });
+%}
+
+###
+

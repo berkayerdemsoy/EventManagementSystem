@@ -31,6 +31,9 @@ public class Event {
     private Long ownerId;
 
     @Column(nullable = false)
+    private String ownerEmail;
+
+    @Column(nullable = false)
     private String address;
 
     @Column(nullable = false)

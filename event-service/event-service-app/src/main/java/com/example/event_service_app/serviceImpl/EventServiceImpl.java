@@ -1,10 +1,13 @@
 package com.example.event_service_app.serviceImpl;
 
+import com.example.ems_common.dto.NotificationEvent;
+import com.example.ems_common.dto.NotificationEventType;
 import com.example.ems_common.exceptions.ForbiddenException;
 import com.example.ems_common.exceptions.NotFoundException;
 import com.example.ems_common.security.SecurityUtils;
 import com.example.event_service_app.entity.Category;
 import com.example.event_service_app.entity.Event;
+import com.example.event_service_app.kafka.NotificationEventProducer;
 import com.example.event_service_app.mapper.EventMapper;
 import com.example.event_service_app.repository.CategoryRepository;
 import com.example.event_service_app.repository.EventRepository;
@@ -30,6 +33,7 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final UserServiceClient userServiceClient;
+    private final NotificationEventProducer notificationEventProducer;
 
     @Override
     @Transactional
@@ -38,13 +42,16 @@ public class EventServiceImpl implements EventService {
         String currentRole = SecurityUtils.getCurrentRole();
 
         // If user is not EVENT_OWNER and not ADMIN, check verification and promote to owner
+        UserResponseDto owner;
         if (!"EVENT_OWNER".equals(currentRole) && !"ADMIN".equals(currentRole)) {
-            UserResponseDto user = userServiceClient.getUserById(currentUserId);
-            if (!user.isVerified()) {
+            owner = userServiceClient.getUserById(currentUserId);
+            if (!owner.isVerified()) {
                 throw new ForbiddenException("User must be verified to create events");
             }
             // Auto-promote to EVENT_OWNER
             userServiceClient.beOwner(currentUserId);
+        } else {
+            owner = userServiceClient.getUserById(currentUserId);
         }
 
         Category category = categoryRepository.findById(dto.getCategoryId())
@@ -52,9 +59,22 @@ public class EventServiceImpl implements EventService {
 
         Event event = eventMapper.toEntity(dto);
         event.setOwnerId(currentUserId);
+        event.setOwnerEmail(owner.getEmail());
         event.setCategory(category);
 
         Event savedEvent = eventRepository.save(event);
+
+        // Kafka: EVENT_OWNER_WELCOME
+        notificationEventProducer.send(NotificationEvent.builder()
+                .eventType(NotificationEventType.EVENT_OWNER_WELCOME)
+                .recipientEmail(owner.getEmail())
+                .payload(java.util.Map.of(
+                        "ownerName", owner.getFirstName() != null ? owner.getFirstName() : owner.getUsername(),
+                        "eventTitle", savedEvent.getTitle(),
+                        "eventId", String.valueOf(savedEvent.getId())
+                ))
+                .build());
+
         return eventMapper.toResponseDto(savedEvent);
     }
 
