@@ -28,7 +28,11 @@ public class UserServiceClientConfig {
 
         RestClient restClient = builder
                 .baseUrl(SERVICE_URL)
-                .requestInterceptors(list -> list.addAll(interceptors))
+                .requestInterceptors(list -> list.addAll(
+                        interceptors.stream()
+                                .filter(i -> !i.getClass().getName().contains("LoadBalancer"))
+                                .toList()
+                ))
                 .build();
 
         RestClientAdapter adapter = RestClientAdapter.create(restClient);
