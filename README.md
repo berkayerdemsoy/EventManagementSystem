@@ -497,6 +497,40 @@ kafkaTemplate.send(topic, event.getRecipientEmail(), event)
 ```
 Messages for the same recipient always land on the same partition — guaranteeing delivery order per user.
 
+## `api-gateway` — Single Entry Point & CORS
+
+All external traffic enters the system exclusively through the API Gateway (port `8090`). No microservice is directly exposed; they only communicate via the Docker internal network.
+
+**Routing Rules:**
+
+| Route ID | Predicate | Upstream Service |
+|:---|:---|:---|
+| `user-service-app` | `Path=/users/**` | `lb://user-service-app` |
+| `event-service-events` | `Path=/events/**` | `lb://event-service-app` |
+| `event-service-categories` | `Path=/categories/**` | `lb://event-service-app` |
+| `event-service-participants` | `Path=/participations/**` | `lb://event-service-app` |
+
+**Global CORS Configuration (`spring.cloud.gateway.server.webmvc.globalcors`):**
+
+```yaml
+globalcors:
+  cors-configurations:
+    '[/**]':
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+      allowed-methods: [GET, POST, PUT, DELETE, PATCH, OPTIONS]
+      allowed-headers: "*"
+      allow-credentials: true
+      exposed-headers:
+        - Authorization
+      max-age: 3600
+```
+
+> **Note:** The `globalcors` block must sit under `spring.cloud.gateway.server.webmvc` (not at the top-level `spring.cloud.gateway` key) because this project uses the **WebMVC variant** of Spring Cloud Gateway. Placing it at the wrong level silently ignores the configuration — all browser preflight (`OPTIONS`) requests would be rejected with `CORS error`.
+
+- `CORS_ALLOWED_ORIGINS` is injected via environment variable in `docker-compose.yml` — no rebuild needed to switch from `localhost:4200` to a production domain.
+- `Authorization` is in `exposed-headers` so Angular's `HttpClient` can read the JWT token from the response.
+- `allow-credentials: true` enables cookie / auth header propagation.
+
 ## `notification-service` — Event-Driven Email Delivery
 
 A dedicated, stateless consumer service. No database, no REST endpoints — pure Kafka consumer.
@@ -669,6 +703,23 @@ Re-queuing from DLQ back to the main topic risks another DLQ failure cycle. The 
 Main topic → [fail × 3] → DLQ (count=0) → re-queue (count=1) → Main topic
 → [fail × 3] → DLQ (count=1) → count ≥ MAX → log.error + stop ✓
 ```
+
+### 13. CORS — Centralized at Gateway Layer
+
+CORS is handled **exclusively** at the API Gateway (`spring.cloud.gateway.server.webmvc.globalcors`). Individual microservices (User Service, Event Service) do **not** configure CORS — they only accept traffic from the gateway's internal Docker network, not from browsers directly.
+
+**Why `globalcors` and not a `CorsFilter` bean?**
+Spring Cloud Gateway WebMVC integrates CORS natively through its `GlobalCorsProperties`. A custom `CorsFilter` bean would conflict with the gateway's own request routing and could be ordered incorrectly relative to the security filter chain.
+
+**Critical gotcha — YAML nesting level:**
+```yaml
+# ✅ CORRECT — under spring.cloud.gateway.server.webmvc
+spring.cloud.gateway.server.webmvc.globalcors.cors-configurations[/**]...
+
+# ❌ WRONG — falls into spring.cloud.gateway (reactive variant's key), silently ignored
+spring.cloud.gateway.globalcors.cors-configurations[/**]...
+```
+Placing `globalcors` at the wrong indentation level causes browser `OPTIONS` preflight requests to receive no `Access-Control-Allow-Origin` header — resulting in hard-to-debug CORS errors in the frontend with no backend log output.
 
 ---
 
@@ -1094,6 +1145,23 @@ Kafka (kafka-topics.sh --list)
   → Notification Service, User Service, Event Service
 ```
 
+### 10. CORS — Gateway Katmaninda Merkezilestirme
+
+CORS yalnizca API Gateway seviyesinde (`spring.cloud.gateway.server.webmvc.globalcors`) yapilandirilir. Mikroservisler CORS tanimlamaz — tarayici istekleri dogrudan onlara ulasmaz, her sey gateway uzerinden gider.
+
+**YAML girintisi kritik:**
+```yaml
+# ✅ DOGRU — spring.cloud.gateway.server.webmvc altinda
+spring.cloud.gateway.server.webmvc.globalcors...
+
+# ❌ YANLIS — spring.cloud.gateway altinda (reaktif variant anahtari), sessizce yok sayilir
+spring.cloud.gateway.globalcors...
+```
+Yanlis girintide `globalcors` blogu sessizce yok sayilir — tarayicidan gelen `OPTIONS` preflight isteklerine `Access-Control-Allow-Origin` header'i donmez, Angular/frontend hata verir ama backend logda hicbir iz kalmaz.
+
+- `CORS_ALLOWED_ORIGINS` ortam degiskeni ile inject edilir → yeniden derleme gerekmeden production domain'e gecis
+- `Authorization` `exposed-headers`'da tanimli → Angular `HttpClient` JWT token'i yanit header'indan okuyabilir
+
 ---
 
 # Kurulum ve Calistirma
@@ -1138,6 +1206,7 @@ docker compose up --build -d
 ### Faz 1 — Backend Mikroservisler &check;
 - [x] Spring Boot 4 ile mikroservis mimarisi
 - [x] Netflix Eureka + Spring Cloud Gateway
+- [x] CORS — Gateway katmaninda merkezilestirme (`spring.cloud.gateway.server.webmvc.globalcors`)
 - [x] Ozel JWT kimlik dogrulama (stateless)
 - [x] Rol tabanli erisim kontrolu
 - [x] Hashlenmis tokenlarla e-posta dogrulama
