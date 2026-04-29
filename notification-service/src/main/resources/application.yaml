@@ -36,6 +36,9 @@ kafka:
   topics:
     notification-events: notification-events
     notification-events-dlq: notification-events-dlq
+  consumer-groups:
+    main: notification-service-group
+    dlq: notification-service-dlq-group
 
 notification:
   mail:
