@@ -86,6 +86,21 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body(error);
     }
+
+    @ExceptionHandler({CannotJoinOwnEventException.class})
+    public ResponseEntity<ErrorResponseDto> handleCannotJoinOwnEventException(CannotJoinOwnEventException ex,
+                                                                              HttpServletRequest request) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                "CANNOT_JOIN_OWN_EVENT",
+                ex.getMessage(),
+                HttpStatus.FORBIDDEN.value(),
+                LocalDateTime.now(),
+                request.getRequestURI()
+        );
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(error);
+    }
 }
 
 
