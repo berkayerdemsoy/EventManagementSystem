@@ -80,4 +80,15 @@ jwt:
   secret: ${JWT_SECRET:your_jwt_secret_key}
   expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds
 
+gateway:
+  url: ${GATEWAY_URL:http://localhost:8090}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+
 
