@@ -13,6 +13,7 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     boolean existsByEventIdAndParticipantId(Long eventId, Long participantId);
 
     List<Participation> findByEventId(Long eventId);
+    List<Participation> findByParticipantId(Long participantId);
 
     /**
      * Reminder job için: başlangıcı [now+23h, now+25h] arasında olan
@@ -28,5 +29,6 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
     );
+
 }
 

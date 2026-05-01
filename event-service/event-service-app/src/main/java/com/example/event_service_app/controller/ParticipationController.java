@@ -27,5 +27,9 @@ public class ParticipationController {
     public List<ParticipationResponseDto> getByEventId(@PathVariable Long eventId) {
         return participationService.getByEventId(eventId);
     }
+    @GetMapping("/my-tickets")
+    public List<ParticipationResponseDto> getMyTickets() {
+        return participationService.getMyTickets();
+    }
 }
 

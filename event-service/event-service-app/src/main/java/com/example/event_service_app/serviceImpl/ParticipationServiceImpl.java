@@ -79,6 +79,15 @@ public class ParticipationServiceImpl implements ParticipationService {
                 .toList();
     }
 
+    @Override
+    public List<ParticipationResponseDto> getMyTickets() {
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        return participationRepository.findByParticipantId(currentUserId)
+                .stream()
+                .map(this::toResponseDto)
+                .toList();
+    }
+
     private ParticipationResponseDto toResponseDto(Participation p) {
         ParticipationResponseDto dto = new ParticipationResponseDto();
         dto.setId(p.getId());

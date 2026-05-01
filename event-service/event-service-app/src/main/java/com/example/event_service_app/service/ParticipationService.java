@@ -8,5 +8,7 @@ import java.util.List;
 public interface ParticipationService {
     ParticipationResponseDto register(ParticipationCreateDto dto);
     List<ParticipationResponseDto> getByEventId(Long eventId);
+    List<ParticipationResponseDto> getMyTickets();
+
 }
 
