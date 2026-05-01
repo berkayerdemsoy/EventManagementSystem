@@ -3,6 +3,7 @@ package com.example.event_service_app.serviceImpl;
 import com.example.ems_common.dto.NotificationEvent;
 import com.example.ems_common.dto.NotificationEventType;
 import com.example.ems_common.exceptions.AlreadyExistsException;
+import com.example.ems_common.exceptions.CannotJoinOwnEventException;
 import com.example.ems_common.exceptions.NotFoundException;
 import com.example.ems_common.security.SecurityUtils;
 import com.example.event_service_app.entity.Event;
@@ -35,6 +36,10 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         Event event = eventRepository.findById(dto.getEventId())
                 .orElseThrow(() -> new NotFoundException("Event not found with id: " + dto.getEventId()));
+
+        if (event.getOwnerId().equals(currentUserId)) {
+            throw new CannotJoinOwnEventException("You cannot join an event that you have created");
+        }
 
         if (participationRepository.existsByEventIdAndParticipantId(dto.getEventId(), currentUserId)) {
             throw new AlreadyExistsException("Already registered for this event");
