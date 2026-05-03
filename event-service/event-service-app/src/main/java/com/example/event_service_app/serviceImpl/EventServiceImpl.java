@@ -15,9 +15,13 @@ import com.example.event_service_app.service.EventService;
 import com.example.event_service_client.dto.EventCreateDto;
 import com.example.event_service_client.dto.EventResponseDto;
 import com.example.event_service_client.dto.EventUpdateDto;
-import com.example.user_service_client.client.UserServiceClient;
-import com.example.user_service_client.dto.UserResponseDto;
+import com.example.user_service_client.grpc.BeOwnerRequest;
+import com.example.user_service_client.grpc.GetUserByIdRequest;
+import com.example.user_service_client.grpc.UserGrpcResponse;
+import com.example.user_service_client.grpc.UserGrpcServiceGrpc;
+import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -32,8 +37,16 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
-    private final UserServiceClient userServiceClient;
+    /**
+     * gRPC BlockingStub — HTTP UserServiceClient'ın yerini aldı.
+     * BlockingStub senkron çağrı yapar: mevcut Tomcat thread'inde bloklanır.
+     * Bu sayede GrpcJwtClientInterceptor, RequestContextHolder'a (ThreadLocal) güvenle erişir.
+     * FutureStub/async kullanılsaydı farklı thread'e geçişte token kaybolabilirdi.
+     */
+    private final UserGrpcServiceGrpc.UserGrpcServiceBlockingStub userGrpcStub;
     private final NotificationEventProducer notificationEventProducer;
+
+    // ─── Event CRUD ──────────────────────────────────────────────────────────
 
     @Override
     @Transactional
@@ -41,17 +54,17 @@ public class EventServiceImpl implements EventService {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         String currentRole = SecurityUtils.getCurrentRole();
 
-        // If user is not EVENT_OWNER and not ADMIN, check verification and promote to owner
-        UserResponseDto owner;
+        UserGrpcResponse owner;
         if (!"EVENT_OWNER".equals(currentRole) && !"ADMIN".equals(currentRole)) {
-            owner = userServiceClient.getUserById(currentUserId);
-            if (!owner.isVerified()) {
+            owner = getUserByIdGrpc(currentUserId);
+            if (!owner.getVerified()) {
                 throw new ForbiddenException("User must be verified to create events");
             }
-            // Auto-promote to EVENT_OWNER
-            userServiceClient.beOwner(currentUserId);
+            // BeOwner: rol günceller + güncel kullanıcıyı tek round-trip'te döner.
+            // HTTP versiyonunda iki ayrı çağrı gerekliydi; gRPC'de tek çağrı yeterli.
+            owner = beOwnerGrpc(currentUserId);
         } else {
-            owner = userServiceClient.getUserById(currentUserId);
+            owner = getUserByIdGrpc(currentUserId);
         }
 
         Category category = categoryRepository.findById(dto.getCategoryId())
@@ -64,12 +77,11 @@ public class EventServiceImpl implements EventService {
 
         Event savedEvent = eventRepository.save(event);
 
-        // Kafka: EVENT_OWNER_WELCOME
         notificationEventProducer.send(NotificationEvent.builder()
                 .eventType(NotificationEventType.EVENT_OWNER_WELCOME)
                 .recipientEmail(owner.getEmail())
                 .payload(java.util.Map.of(
-                        "ownerName", owner.getFirstName() != null ? owner.getFirstName() : owner.getUsername(),
+                        "ownerName", !owner.getFirstName().isBlank() ? owner.getFirstName() : owner.getUsername(),
                         "eventTitle", savedEvent.getTitle(),
                         "eventId", String.valueOf(savedEvent.getId())
                 ))
@@ -145,6 +157,45 @@ public class EventServiceImpl implements EventService {
     public Page<EventResponseDto> getEventsByDateRange(LocalDateTime start, LocalDateTime end, Pageable pageable) {
         return eventRepository.findByStartDateBetween(start, end, pageable).map(eventMapper::toResponseDto);
     }
+
+    // ─── gRPC Helper Metotları ────────────────────────────────────────────────
+
+    /**
+     * getUserById gRPC çağrısı — StatusRuntimeException → uygulama exception'ına çevrilir.
+     * Bilinmeyen hata kodları için RuntimeException fırlatılır; önüne global exception
+     * handler yakalamayı bırak (5xx döner, client yeniden dener).
+     */
+    private UserGrpcResponse getUserByIdGrpc(Long userId) {
+        try {
+            return userGrpcStub.getUserById(
+                    GetUserByIdRequest.newBuilder().setId(userId).build()
+            );
+        } catch (StatusRuntimeException e) {
+            log.error("gRPC GetUserById başarısız — userId={}, status={}", userId, e.getStatus());
+            throw switch (e.getStatus().getCode()) {
+                case NOT_FOUND       -> new NotFoundException("User not found with id: " + userId);
+                case PERMISSION_DENIED -> new ForbiddenException(e.getStatus().getDescription());
+                default              -> new RuntimeException("gRPC error: " + e.getStatus().getDescription());
+            };
+        }
+    }
+
+    /**
+     * beOwner gRPC çağrısı — kullanıcıyı EVENT_OWNER'a yükseltir.
+     * HTTP versiyonundan farkı: beOwner + getUserById tek round-trip'te tamamlanır.
+     */
+    private UserGrpcResponse beOwnerGrpc(Long userId) {
+        try {
+            return userGrpcStub.beOwner(
+                    BeOwnerRequest.newBuilder().setId(userId).build()
+            );
+        } catch (StatusRuntimeException e) {
+            log.error("gRPC BeOwner başarısız — userId={}, status={}", userId, e.getStatus());
+            throw switch (e.getStatus().getCode()) {
+                case NOT_FOUND       -> new NotFoundException("User not found with id: " + userId);
+                case PERMISSION_DENIED -> new ForbiddenException(e.getStatus().getDescription());
+                default              -> new RuntimeException("gRPC error: " + e.getStatus().getDescription());
+            };
+        }
+    }
 }
-
-

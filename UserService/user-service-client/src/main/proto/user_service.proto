@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+// Üretilen Java sınıfları bu pakete yazılır.
+// user-service-client ve onu kullanan tüm servisler (event-service-app) bu paketi import eder.
+option java_package = "com.example.user_service_client.grpc";
+
+// Her mesaj/servis için ayrı .java dosyası üretilir (tek büyük dosya yerine).
+option java_multiple_files = true;
+
+// Dış sınıf adı — sadece dosyalar arasındaki çakışmayı önlemek için.
+option java_outer_classname = "UserServiceProto";
+
+package user;
+
+// ─── Servis Tanımı ───────────────────────────────────────────────────────────
+//
+// event-service → user-service arasındaki iki internal çağrı:
+//   1. getUserById  : Kullanıcı bilgilerini çek (verified, email, firstName)
+//   2. beOwner      : Kullanıcıyı EVENT_OWNER rolüne yükselt, güncel bilgileri dön
+//
+// Önemli: Bu proto dosyası, HTTP REST API'nin DEĞİL, internal gRPC sözleşmesinin tanımıdır.
+// Dış istemciler (Angular, API Gateway) hâlâ REST üzerinden iletişim kurar.
+service UserGrpcService {
+  rpc GetUserById (GetUserByIdRequest) returns (UserGrpcResponse);
+  rpc BeOwner     (BeOwnerRequest)     returns (UserGrpcResponse);
+}
+
+// ─── Request Mesajları ────────────────────────────────────────────────────────
+
+message GetUserByIdRequest {
+  int64 id = 1;
+}
+
+message BeOwnerRequest {
+  // Hangi kullanıcının rolü yükseltilecek
+  int64 id = 1;
+}
+
+// ─── Response Mesajı ─────────────────────────────────────────────────────────
+//
+// event-service'in ihtiyaç duyduğu alanlar:
+//   - verified : Etkinlik oluşturma yetkisi kontrolü için
+//   - email    : Kafka event notification için
+//   - firstName: Email template için (ownerName)
+//   - role     : Güncel rol bilgisi (beOwner sonrası EVENT_OWNER olduğunu doğrulamak için)
+message UserGrpcResponse {
+  int64  id           = 1;
+  string username     = 2;
+  string email        = 3;
+  string role         = 4;  // "USER" | "EVENT_OWNER" | "ADMIN"
+  bool   verified     = 5;
+  string first_name   = 6;
+  string last_name    = 7;
+  string phone_number = 8;
+}
+

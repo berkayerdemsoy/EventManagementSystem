@@ -38,6 +38,13 @@ spring:
         spring.json.add.type.headers: false
         max.block.ms: 5000
 
+  # ─── Spring gRPC Server ──────────────────────────────────────────────────────
+  # HTTP (8080) ile gRPC (9090) farklı portlarda çalışır.
+  # Spring gRPC autoconfigure bu ayarı okuyarak Netty tabanlı gRPC sunucusunu başlatır.
+  grpc:
+    server:
+      port: ${GRPC_PORT:9090}
+
 kafka:
   topics:
     notification-events: notification-events
@@ -58,6 +65,11 @@ eureka:
     fetch-registry: true
   instance:
     prefer-ip-address: true
+    # gRPC portunu Eureka metadata'sına yayınla.
+    # event-service-app'ın lb:// resolver'ı bu değeri okuyarak HTTP portuna (8080)
+    # değil gRPC portuna (9090) bağlanır.
+    metadata-map:
+      grpc.port: ${GRPC_PORT:9090}
 
 
 management:

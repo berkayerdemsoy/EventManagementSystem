@@ -376,7 +376,7 @@ This module is the **backbone of cross-cutting concerns** across all microservic
 <dependency>
     <groupId>com.example</groupId>
     <artifactId>ems-common</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.6</version>
 </dependency>
 ```
 

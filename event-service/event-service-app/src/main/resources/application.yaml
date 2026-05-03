@@ -39,9 +39,23 @@ spring:
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
       org.quartz.jobStore.useProperties: true
 
+  # ─── Spring gRPC Client — NOT USED ─────────────────────────────────────────
+  # Spring gRPC 1.0.3, lb:// şeması için NameResolverProvider içermez.
+  # Kanal, UserGrpcClientConfig içinde ManagedChannelBuilder.forAddress() ile
+  # doğrudan grpc.client.user-service.host:port üzerinden kurulur.
+
 kafka:
   topics:
     notification-events: notification-events
+
+# ─── gRPC Client — user-service bağlantı bilgileri ───────────────────────────
+# Docker Compose: USER_SERVICE_GRPC_HOST=user-service (Docker DNS service adı)
+# Local dev:      varsayılan localhost:9090
+grpc:
+  client:
+    user-service:
+      host: ${USER_SERVICE_GRPC_HOST:localhost}
+      port: ${USER_SERVICE_GRPC_PORT:9090}
 
 server:
   port: ${SERVER_PORT:8081}
