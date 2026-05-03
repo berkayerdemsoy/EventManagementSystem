@@ -156,9 +156,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
       KAFKA_BROKERS: kafka:29092
-      # gRPC client → user-service container'ına Docker DNS ile bağlanır (port: 9090)
-      USER_SERVICE_GRPC_HOST: user-service
-      USER_SERVICE_GRPC_PORT: 9090
+      # gRPC client — discovery:///user-service-app üzerinden Eureka'dan otomatik bulunur.
+      # USER_SERVICE_GRPC_HOST / PORT artık gerekli değil; GrpcChannelFactory + round_robin
     depends_on:
       eureka-server:
         condition: service_healthy

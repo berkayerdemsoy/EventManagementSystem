@@ -2,21 +2,24 @@ package com.example.event_service_app.configs;
 
 import com.example.ems_common.interceptor.GrpcJwtClientInterceptor;
 import com.example.user_service_client.grpc.UserGrpcServiceGrpc;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import org.springframework.beans.factory.annotation.Value;
+import io.grpc.Channel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.grpc.client.GrpcChannelFactory;
 
 /**
  * gRPC Client Konfigürasyonu — event-service-app
  *
- * <p>Spring gRPC 1.0.3, {@code lb://} şeması için NameResolverProvider içermediğinden
- * kanal doğrudan {@link ManagedChannelBuilder#forAddress(String, int)} ile kurulur.
- * Host ve port, ortam değişkenleri veya application.yaml üzerinden yapılandırılır.
+ * <p>Kanal, Spring gRPC'nin {@link GrpcChannelFactory} altyapısı üzerinden kurulur.
+ * Channel özelliklerini (adres, load-balancing politikası, TLS) doğrudan Java kodunda
+ * tanımlamak yerine {@code spring.grpc.client.channels.user-service} bloğu
+ * (application.yaml) üzerinden yönetiyoruz.
  *
- * <p>Docker Compose'da {@code USER_SERVICE_GRPC_HOST=user-service} (Docker DNS)
- * ve {@code USER_SERVICE_GRPC_PORT=9090} olarak set edilmesi yeterlidir.
+ * <p>Adres {@code discovery:///user-service-app} olarak yapılandırıldığında
+ * Spring Cloud Discovery (Eureka) NameResolver devreye girer:
+ * Eureka'ya kayıtlı tüm {@code user-service-app} instance'larını bulur ve
+ * Eureka metadata'sındaki {@code grpc.port} değerini okuyarak doğru porta bağlanır.
+ * {@code round_robin} politikası ile yatay ölçekleme (multiple replicas) desteklenir.
  *
  * <p><b>JWT Propagation</b>: {@link GrpcJwtClientInterceptor}, mevcut HTTP isteğinin
  * Authorization header'ını gRPC metadata'sına kopyalar. BlockingStub kullandığımız için
@@ -37,21 +40,16 @@ public class UserGrpcClientConfig {
     /**
      * user-service-app için gRPC blocking stub.
      *
-     * <p>Kanal, {@code grpc.client.user-service.host} ve
-     * {@code grpc.client.user-service.port} property'lerinden kurulur.
-     * Varsayılanlar: host=localhost, port=9090 (local development).
-     * Docker Compose'da host=user-service olarak override edilir.
+     * <p>Kanal adı {@code "user-service"}, {@code spring.grpc.client.channels.user-service}
+     * bloğuyla eşleşir. GrpcChannelFactory bu bloğu okuyarak discovery + round_robin
+     * load-balanced bir kanal döner.
      */
     @Bean
     public UserGrpcServiceGrpc.UserGrpcServiceBlockingStub userGrpcServiceBlockingStub(
-            @Value("${grpc.client.user-service.host:localhost}") String host,
-            @Value("${grpc.client.user-service.port:9090}") int port,
+            GrpcChannelFactory channelFactory,
             GrpcJwtClientInterceptor grpcJwtClientInterceptor) {
 
-        ManagedChannel channel = ManagedChannelBuilder
-                .forAddress(host, port)
-                .usePlaintext()
-                .build();
+        Channel channel = channelFactory.createChannel("user-service");
 
         return UserGrpcServiceGrpc
                 .newBlockingStub(channel)

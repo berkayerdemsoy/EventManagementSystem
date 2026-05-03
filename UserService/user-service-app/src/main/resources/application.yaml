@@ -66,8 +66,8 @@ eureka:
   instance:
     prefer-ip-address: true
     # gRPC portunu Eureka metadata'sına yayınla.
-    # event-service-app'ın lb:// resolver'ı bu değeri okuyarak HTTP portuna (8080)
-    # değil gRPC portuna (9090) bağlanır.
+    # event-service-app'ın discovery:/// resolver'ı bu değeri okuyarak HTTP portuna (8080)
+    # değil gRPC portuna (9090) bağlanır. round_robin LB ile tüm instance'lar kullanılır.
     metadata-map:
       grpc.port: ${GRPC_PORT:9090}
 
