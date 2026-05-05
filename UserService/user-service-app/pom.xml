@@ -119,8 +119,7 @@
 		<!-- ── Spring gRPC (gRPC Server otomatik başlar, spring.grpc.server.port'tan) ── -->
 		<dependency>
 			<groupId>org.springframework.grpc</groupId>
-			<artifactId>spring-grpc-spring-boot-starter</artifactId>
-			<version>1.0.3</version>
+			<artifactId>spring-grpc-server-spring-boot-starter</artifactId>
 		</dependency>
 
 		<!-- JWT runtime deps (ems-common declares them as optional) -->

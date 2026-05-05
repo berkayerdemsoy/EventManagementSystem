@@ -3,34 +3,37 @@ package com.example.event_service_app.configs;
 import com.example.ems_common.interceptor.GrpcJwtClientInterceptor;
 import com.example.user_service_client.grpc.UserGrpcServiceGrpc;
 import io.grpc.Channel;
+import io.grpc.NameResolverProvider;
+import io.grpc.NameResolverRegistry;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.grpc.client.GrpcChannelFactory;
 
 /**
  * gRPC Client Konfigürasyonu — event-service-app
  *
- * <p>Kanal, Spring gRPC'nin {@link GrpcChannelFactory} altyapısı üzerinden kurulur.
- * Channel özelliklerini (adres, load-balancing politikası, TLS) doğrudan Java kodunda
- * tanımlamak yerine {@code spring.grpc.client.channels.user-service} bloğu
- * (application.yaml) üzerinden yönetiyoruz.
+ * <p>Kanal, Spring gRPC 1.0.x'in belgelenmiş API'si olan {@link GrpcChannelFactory}
+ * üzerinden kurulur. {@code spring.grpc.client.channels.user-service} bloğundaki
+ * adres ({@code discovery:///user-service-app}) custom NameResolverProvider ile
+ * Spring Cloud DiscoveryClient üzerinden çözülür.
  *
- * <p>Adres {@code discovery:///user-service-app} olarak yapılandırıldığında
- * Spring Cloud Discovery (Eureka) NameResolver devreye girer:
- * Eureka'ya kayıtlı tüm {@code user-service-app} instance'larını bulur ve
- * Eureka metadata'sındaki {@code grpc.port} değerini okuyarak doğru porta bağlanır.
- * {@code round_robin} politikası ile yatay ölçekleme (multiple replicas) desteklenir.
- *
- * <p><b>JWT Propagation</b>: {@link GrpcJwtClientInterceptor}, mevcut HTTP isteğinin
- * Authorization header'ını gRPC metadata'sına kopyalar. BlockingStub kullandığımız için
- * aynı Tomcat thread'inde çalışır ve ThreadLocal sorun yaratmaz.
+ * <p>Stub standart bir Spring Bean olarak expose edilir;
+ * {@code @RequiredArgsConstructor} sorunsuz inject eder.
  */
 @Configuration
 public class UserGrpcClientConfig {
 
+    @Bean
+    public NameResolverProvider discoveryNameResolverProvider(DiscoveryClient discoveryClient) {
+        NameResolverProvider provider = new DiscoveryClientNameResolverProvider(discoveryClient);
+        NameResolverRegistry.getDefaultRegistry().register(provider);
+        return provider;
+    }
+
     /**
-     * gRPC JWT client interceptor bean'i.
-     * Tüm giden gRPC çağrılarına Authorization metadata header'ı ekler.
+     * gRPC JWT client interceptor — Authorization header'ını gRPC metadata'sına kopyalar.
      */
     @Bean
     public GrpcJwtClientInterceptor grpcJwtClientInterceptor() {
@@ -41,10 +44,11 @@ public class UserGrpcClientConfig {
      * user-service-app için gRPC blocking stub.
      *
      * <p>Kanal adı {@code "user-service"}, {@code spring.grpc.client.channels.user-service}
-     * bloğuyla eşleşir. GrpcChannelFactory bu bloğu okuyarak discovery + round_robin
-     * load-balanced bir kanal döner.
+     * bloğuyla eşleşir. {@link GrpcChannelFactory} bu bloğu okuyarak discovery + round_robin
+     * load-balanced bir kanal döner; {@link GrpcJwtClientInterceptor} stub'a eklenir.
      */
     @Bean
+    @DependsOn("discoveryNameResolverProvider")
     public UserGrpcServiceGrpc.UserGrpcServiceBlockingStub userGrpcServiceBlockingStub(
             GrpcChannelFactory channelFactory,
             GrpcJwtClientInterceptor grpcJwtClientInterceptor) {
