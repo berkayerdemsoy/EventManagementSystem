@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Etkinlik Hatırlatması – Eventer</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0f0f13;font-family:'Segoe UI',system-ui,Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f0f13;padding:48px 0;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+
+        <!-- Logo / Brand -->
+        <tr>
+          <td style="padding:0 0 32px;text-align:left;">
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="vertical-align:middle;padding-right:8px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="26" height="26" style="display:block;">
+                    <circle cx="50" cy="9"  r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="76" cy="18" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="91" cy="44" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="91" cy="70" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="76" cy="82" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="50" cy="91" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="24" cy="82" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="9"  cy="56" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="9"  cy="30" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="24" cy="18" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="50" cy="21" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="73" cy="33" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="79" cy="58" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="62" cy="78" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="38" cy="78" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="21" cy="58" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="27" cy="33" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="50" cy="50" r="28"  fill="#feaa00" opacity="0.18"/>
+                    <circle cx="50" cy="50" r="20"  fill="#feaa00"/>
+                  </svg>
+                </td>
+                <td style="vertical-align:middle;">
+                  <span style="font-size:18px;font-weight:300;color:#e8e8f0;letter-spacing:0.1em;">Aura Events</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Main Card -->
+        <tr>
+          <td style="background-color:#16161e;border-radius:16px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+
+            <!-- Top accent line -->
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="height:3px;background:linear-gradient(90deg,#f59e0b,#f97316,transparent);"></td>
+              </tr>
+            </table>
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:56px 48px 48px;">
+              <tr>
+                <td>
+                  <!-- Label pill — amber tinted (mirrors statusBadge in frontend) -->
+                  <table cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+                    <tr>
+                      <td style="background-color:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:100px;padding:6px 16px;">
+                        <span style="font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#f59e0b;">
+                          Yarın · Hatırlatma
+                        </span>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- Big headline — mirrors event title style in hero -->
+                  <h1 style="margin:0 0 16px;font-size:52px;font-weight:300;line-height:1.05;letter-spacing:-0.04em;color:#e8e8f0;"
+                      th:text="${eventTitle}">[Etkinlik Başlığı]</h1>
+
+                  <p style="margin:0 0 48px;font-size:17px;font-weight:300;line-height:1.65;color:#8b8b9e;">
+                    Kayıt olduğunuz etkinlik yarın gerçekleşecek. Zamanında yerinde olmanızı tavsiye ederiz.
+                  </p>
+
+                  <!-- Details block — mirrors "venue / date" grid from About Card -->
+                  <table width="100%" cellpadding="0" cellspacing="0"
+                         style="background-color:#1c1c26;border-radius:10px;border:1px solid rgba(255,255,255,0.05);margin-bottom:40px;">
+                    <tr>
+                      <td style="padding:28px 32px;">
+                        <table width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td width="50%" style="padding:0 24px 0 0;vertical-align:top;">
+                              <p style="margin:0 0 8px;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#4a4a5c;">
+                                Tarih
+                              </p>
+                              <p style="margin:0;font-size:18px;font-weight:300;color:#e8e8f0;"
+                                 th:text="${eventDate}">[Tarih]</p>
+                            </td>
+                            <td width="50%" style="padding:0 0 0 24px;vertical-align:top;border-left:1px solid rgba(255,255,255,0.05);">
+                              <p style="margin:0 0 8px;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#4a4a5c;">
+                                Şehir
+                              </p>
+                              <p style="margin:0;font-size:18px;font-weight:300;color:#e8e8f0;"
+                                 th:text="${eventCity}">[Şehir]</p>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- Tip row — subtle, like on-surface-variant hint text -->
+                  <table width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td style="border-top:1px solid rgba(255,255,255,0.05);padding-top:24px;">
+                        <p style="margin:0;font-size:13px;font-weight:300;color:#4a4a5c;line-height:1.6;">
+                          📍 Etkinlik yerine zamanında varmak için önceden yola çıkmayı unutmayın.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:28px 0 0;text-align:left;">
+            <p style="margin:0;font-size:11px;color:#3d3d4d;line-height:1.6;">
+              İyi eğlenceler dileriz, Aura Events Ekibi · © 2026 Aura Events
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
+
+
+
+

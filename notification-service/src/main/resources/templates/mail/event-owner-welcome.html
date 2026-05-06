@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Etkinliğiniz Oluşturuldu – Eventer</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0f0f13;font-family:'Segoe UI',system-ui,Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f0f13;padding:48px 0;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
+
+        <!-- Logo / Brand -->
+        <tr>
+          <td style="padding:0 0 32px;text-align:left;">
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="vertical-align:middle;padding-right:8px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="26" height="26" style="display:block;">
+                    <circle cx="50" cy="9"  r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="76" cy="18" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="91" cy="44" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="91" cy="70" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="76" cy="82" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="50" cy="91" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="24" cy="82" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="9"  cy="56" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="9"  cy="30" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="24" cy="18" r="5.5" fill="#feaa00" opacity="0.32"/>
+                    <circle cx="50" cy="21" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="73" cy="33" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="79" cy="58" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="62" cy="78" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="38" cy="78" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="21" cy="58" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="27" cy="33" r="7"   fill="#feaa00" opacity="0.68"/>
+                    <circle cx="50" cy="50" r="28"  fill="#feaa00" opacity="0.18"/>
+                    <circle cx="50" cy="50" r="20"  fill="#feaa00"/>
+                  </svg>
+                </td>
+                <td style="vertical-align:middle;">
+                  <span style="font-size:18px;font-weight:300;color:#e8e8f0;letter-spacing:0.1em;">Aura Events</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Main Card -->
+        <tr>
+          <td style="background-color:#16161e;border-radius:16px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+
+            <!-- Top accent line -->
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="height:3px;background:linear-gradient(90deg,#f59e0b,#f97316,transparent);"></td>
+              </tr>
+            </table>
+
+            <table width="100%" cellpadding="0" cellspacing="0" style="padding:56px 48px 48px;">
+              <tr>
+                <td>
+                  <!-- Label -->
+                  <p style="margin:0 0 28px;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#6b6b80;">
+                    Etkinlik Oluşturuldu
+                  </p>
+
+                  <!-- Headline -->
+                  <h1 style="margin:0 0 16px;font-size:42px;font-weight:300;line-height:1.1;letter-spacing:-0.03em;color:#e8e8f0;">
+                    Tebrikler, <span th:text="${ownerName}" style="color:#f59e0b;">Organizatör</span>.
+                  </h1>
+                  <p style="margin:0 0 48px;font-size:17px;font-weight:300;line-height:1.65;color:#8b8b9e;">
+                    Etkinliğiniz başarıyla yayına alındı. Katılımcılar artık etkinliğinizi keşfedip kayıt olabilir.
+                  </p>
+
+                  <!-- Event Name Card -->
+                  <table width="100%" cellpadding="0" cellspacing="0"
+                         style="background-color:#1c1c26;border-radius:10px;border:1px solid rgba(255,255,255,0.05);margin-bottom:40px;">
+                    <tr>
+                      <td style="padding:28px 32px;">
+                        <p style="margin:0 0 10px;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#4a4a5c;">
+                          Etkinlik Adı
+                        </p>
+                        <p style="margin:0;font-size:26px;font-weight:300;letter-spacing:-0.02em;color:#e8e8f0;"
+                           th:text="${eventTitle}">[Etkinlik Başlığı]</p>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- Steps -->
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
+                    <tr>
+                      <td style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#4a4a5c;margin-right:16px;">01</span>
+                        <span style="font-size:14px;font-weight:300;color:#8b8b9e;">Katılımcılar etkinliğinizi keşfeder ve kayıt olur</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#4a4a5c;margin-right:16px;">02</span>
+                        <span style="font-size:14px;font-weight:300;color:#8b8b9e;">Her yeni kayıtta sisteme bildirim düşer</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:14px 0;">
+                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#4a4a5c;margin-right:16px;">03</span>
+                        <span style="font-size:14px;font-weight:300;color:#8b8b9e;">Etkinlik öncesinde katılımcılara otomatik hatırlatma gönderilir</span>
+                      </td>
+                    </tr>
+                  </table>
+
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding:28px 0 0;text-align:left;">
+            <p style="margin:0;font-size:11px;color:#3d3d4d;line-height:1.6;">
+              İyi etkinlikler dileriz, Aura Events Ekibi · © 2026 Aura Events
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
+
+
+
+

@@ -2,19 +2,20 @@ package com.example.notification_service.service.handler;
 
 import com.example.ems_common.dto.NotificationEvent;
 import com.example.ems_common.dto.NotificationEventType;
+import com.example.notification_service.service.EmailTemplateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class EventReminderHandler implements NotificationHandler {
 
-    private final JavaMailSender mailSender;
+    private final EmailTemplateService emailTemplateService;
 
     @Value("${notification.mail.from:onboarding@resend.dev}")
     private String fromEmail;
@@ -30,24 +31,20 @@ public class EventReminderHandler implements NotificationHandler {
         String eventDate  = event.getPayload().getOrDefault("eventDate", "");
         String eventCity  = event.getPayload().getOrDefault("eventCity", "");
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(event.getRecipientEmail());
-        message.setSubject("Eventer - Yarınki Etkinliğinizi Unutmayın!");
-        message.setText("""
-                Merhaba,
-                
-                Yarın gerçekleşecek "%s" etkinliğini hatırlatmak istedik.
-                
-                📅 Tarih: %s
-                📍 Şehir: %s
-                
-                İyi eğlenceler dileriz!
-                Eventer Ekibi
-                """.formatted(eventTitle, eventDate, eventCity));
+        Map<String, Object> variables = Map.of(
+                "eventTitle", eventTitle,
+                "eventDate",  eventDate,
+                "eventCity",  eventCity
+        );
 
-        mailSender.send(message);
+        emailTemplateService.sendHtmlEmail(
+                fromEmail,
+                event.getRecipientEmail(),
+                "Eventer - Yarınki Etkinliğinizi Unutmayın!",
+                "mail/event-reminder",
+                variables
+        );
+
         log.info("[EventReminder] Hatırlatma maili gönderildi: {}", event.getRecipientEmail());
     }
 }
-

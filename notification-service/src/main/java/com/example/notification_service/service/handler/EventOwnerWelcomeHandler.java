@@ -2,19 +2,20 @@ package com.example.notification_service.service.handler;
 
 import com.example.ems_common.dto.NotificationEvent;
 import com.example.ems_common.dto.NotificationEventType;
+import com.example.notification_service.service.EmailTemplateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class EventOwnerWelcomeHandler implements NotificationHandler {
 
-    private final JavaMailSender mailSender;
+    private final EmailTemplateService emailTemplateService;
 
     @Value("${notification.mail.from:onboarding@resend.dev}")
     private String fromEmail;
@@ -26,26 +27,22 @@ public class EventOwnerWelcomeHandler implements NotificationHandler {
 
     @Override
     public void handle(NotificationEvent event) {
-        String ownerName = event.getPayload().getOrDefault("ownerName", "Değerli Etkinlik Sahibi");
+        String ownerName  = event.getPayload().getOrDefault("ownerName", "Değerli Etkinlik Sahibi");
         String eventTitle = event.getPayload().getOrDefault("eventTitle", "");
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(event.getRecipientEmail());
-        message.setSubject("Eventer - Etkinliğiniz Başarıyla Oluşturuldu!");
-        message.setText("""
-                Merhaba %s,
-                
-                "%s" adlı etkinliğiniz başarıyla oluşturuldu. Tebrikler!
-                
-                Katılımcılar etkinliğinize kayıt olmaya başladığında bildirim alacaksınız.
-                
-                İyi etkinlikler dileriz,
-                Eventer Ekibi
-                """.formatted(ownerName, eventTitle));
+        Map<String, Object> variables = Map.of(
+                "ownerName",  ownerName,
+                "eventTitle", eventTitle
+        );
 
-        mailSender.send(message);
+        emailTemplateService.sendHtmlEmail(
+                fromEmail,
+                event.getRecipientEmail(),
+                "Eventer - Etkinliğiniz Başarıyla Oluşturuldu!",
+                "mail/event-owner-welcome",
+                variables
+        );
+
         log.info("[EventOwnerWelcome] Hoşgeldin maili gönderildi: {}", event.getRecipientEmail());
     }
 }
-
