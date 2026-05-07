@@ -8,6 +8,7 @@ import com.example.ems_common.exceptions.InvalidCredentialsException;
 import com.example.ems_common.exceptions.NotFoundException;
 import com.example.user_service_app.configs.adminLoginConfigs.AdminProperties;
 import com.example.user_service_app.configs.emailConfigs.HashUtil;
+import com.example.user_service_app.configs.frontendConfigs.FrontendProperties;
 import com.example.user_service_app.configs.emailConfigs.VerificationToken;
 import com.example.user_service_app.configs.emailConfigs.VerificationTokenRepository;
 import com.example.user_service_app.kafka.NotificationEventProducer;
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final AdminProperties adminProperties;
+    private final FrontendProperties frontendProperties;
     private final VerificationTokenRepository verificationTokenRepository;
     private final NotificationEventProducer notificationEventProducer;
     private final JwtUtil jwtUtil;
@@ -55,8 +57,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsernameIgnoreCase(username).orElseThrow(() -> new NotFoundException("User not found"));
         return userMapper.toResponseDto(user);
     }
-    //TODO while creating user's role , should be set to USER by default and should not be allowed to set it to ADMIN
-    //TODO email validation should be added
+    
     @Override
     public UserResponseDto createUser(UserCreateDto dto) {
         if(userRepository.existsByUsernameIgnoreCase(dto.getUsername())) {
@@ -122,8 +123,12 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         String email =  user.getEmail();
 
-        // Eski token varsa sil
-        verificationTokenRepository.findByUser(user).ifPresent(verificationTokenRepository::delete);
+        // Eski token varsa sil — flush() ile DELETE DB'ye hemen gönderilir,
+        // ardından gelen INSERT user_id unique constraint'ini ihlal etmez.
+        verificationTokenRepository.findByUser(user).ifPresent(old -> {
+            verificationTokenRepository.delete(old);
+            verificationTokenRepository.flush();
+        });
 
         String plainToken = UUID.randomUUID().toString();
         String hashedToken = HashUtil.hashToken(plainToken);
@@ -131,7 +136,7 @@ public class UserServiceImpl implements UserService {
         VerificationToken verificationToken = new VerificationToken(hashedToken, user);
         verificationTokenRepository.save(verificationToken);
 
-        String verificationLink = "http://localhost:8080/users/confirm-email?token=" + plainToken;
+        String verificationLink = frontendProperties.getUrl() + "/verify-email?token=" + plainToken;
 
         notificationEventProducer.send(NotificationEvent.builder()
                 .eventType(NotificationEventType.EMAIL_VERIFICATION)
@@ -145,7 +150,15 @@ public class UserServiceImpl implements UserService {
     public void confirmEmail(String token) {
         String hashedToken = HashUtil.hashToken(token);
         VerificationToken verificationToken = verificationTokenRepository.findByTokenHash(hashedToken)
-                .orElseThrow(() -> new NotFoundException("Invalid verification token"));
+                .orElse(null);
+
+        // Token bulunamadıysa — ya zaten tüketildi (double-call) ya da asla geçerli değildi.
+        // Token'ın bağlı olduğu kullanıcıyı bilemeyeceğimiz için sessizce dönmek yerine
+        // "already verified" durumunu da gözetiyoruz: token yoksa ve dışarıdan erişiliyorsa
+        // güvenli şekilde NotFoundException fırlat.
+        if (verificationToken == null) {
+            throw new NotFoundException("Invalid or already used verification token");
+        }
 
         if (verificationToken.isExpired()) {
             verificationTokenRepository.delete(verificationToken);
@@ -153,10 +166,18 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = verificationToken.getUser();
-        user.setVerified(true);
-        userRepository.save(user);
 
-        verificationTokenRepository.delete(verificationToken);
+        if (!user.isVerified()) {
+            // İLK ÇAĞRI: kullanıcıyı doğrula ama token'ı silme.
+            // Token DB'de kalır; React StrictMode gibi double-call senaryolarında
+            // 2. çağrı token'ı tekrar bulabilir ve aşağıdaki else dalına düşer.
+            user.setVerified(true);
+            userRepository.save(user);
+        } else {
+            // İKİNCİ (veya tekrar eden) ÇAĞRI: kullanıcı zaten doğrulanmış,
+            // artık token'a gerek yok — temizle.
+            verificationTokenRepository.delete(verificationToken);
+        }
     }
 
 

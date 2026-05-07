@@ -95,6 +95,9 @@ jwt:
 gateway:
   url: ${GATEWAY_URL:http://localhost:8090}
 
+frontend:
+  url: ${FRONTEND_URL:http://localhost:4200}
+
 springdoc:
   api-docs:
     path: /v3/api-docs
