@@ -101,6 +101,21 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body(error);
     }
+
+    @ExceptionHandler({TooManyRequestsException.class})
+    public ResponseEntity<ErrorResponseDto> handleTooManyRequestsException(TooManyRequestsException ex,
+                                                                           HttpServletRequest request) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                "TOO_MANY_REQUESTS",
+                ex.getMessage(),
+                HttpStatus.TOO_MANY_REQUESTS.value(),
+                LocalDateTime.now(),
+                request.getRequestURI()
+        );
+        return ResponseEntity
+                .status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(error);
+    }
 }
 
 

@@ -6,6 +6,7 @@ import com.example.ems_common.exceptions.AlreadyExistsException;
 import com.example.ems_common.exceptions.ForbiddenException;
 import com.example.ems_common.exceptions.InvalidCredentialsException;
 import com.example.ems_common.exceptions.NotFoundException;
+import com.example.ems_common.exceptions.TooManyRequestsException;
 import com.example.user_service_app.configs.adminLoginConfigs.AdminProperties;
 import com.example.user_service_app.configs.emailConfigs.HashUtil;
 import com.example.user_service_app.configs.frontendConfigs.FrontendProperties;
@@ -27,11 +28,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
+    private static final long EMAIL_RESEND_COOLDOWN_SECONDS = 60;
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -126,6 +130,14 @@ public class UserServiceImpl implements UserService {
         // Eski token varsa sil — flush() ile DELETE DB'ye hemen gönderilir,
         // ardından gelen INSERT user_id unique constraint'ini ihlal etmez.
         verificationTokenRepository.findByUser(user).ifPresent(old -> {
+            // Rate limit: son gönderimden bu yana yeterli süre geçmedi ise engelle
+            if (old.getCreatedAt() != null &&
+                    old.getCreatedAt().plusSeconds(EMAIL_RESEND_COOLDOWN_SECONDS).isAfter(LocalDateTime.now())) {
+                long secondsLeft = java.time.Duration.between(LocalDateTime.now(),
+                        old.getCreatedAt().plusSeconds(EMAIL_RESEND_COOLDOWN_SECONDS)).getSeconds();
+                throw new TooManyRequestsException(
+                        "Please wait " + secondsLeft + " second(s) before requesting another verification email.");
+            }
             verificationTokenRepository.delete(old);
             verificationTokenRepository.flush();
         });
