@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Etkinliğiniz Oluşturuldu – Eventer</title>
+  <title>Etkinliğiniz Oluşturuldu – aKissy Events</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0f0f13;font-family:'Segoe UI',system-ui,Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:#f5f4f0;font-family:'Segoe UI',system-ui,Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f0f13;padding:48px 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0;padding:48px 0;">
   <tr>
     <td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
@@ -17,8 +17,8 @@
           <td style="padding:0 0 32px;text-align:left;">
             <table cellpadding="0" cellspacing="0">
               <tr>
-                <td style="vertical-align:middle;padding-right:8px;">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="26" height="26" style="display:block;">
+                <td style="vertical-align:middle;padding-right:10px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" style="display:block;">
                     <circle cx="50" cy="9"  r="5.5" fill="#feaa00" opacity="0.32"/>
                     <circle cx="76" cy="18" r="5.5" fill="#feaa00" opacity="0.32"/>
                     <circle cx="91" cy="44" r="5.5" fill="#feaa00" opacity="0.32"/>
@@ -41,7 +41,7 @@
                   </svg>
                 </td>
                 <td style="vertical-align:middle;">
-                  <span style="font-size:18px;font-weight:300;color:#e8e8f0;letter-spacing:0.1em;">Aura Events</span>
+                  <span style="font-size:18px;font-weight:300;color:#1c1c23;letter-spacing:0.1em;">aKissy Events</span>
                 </td>
               </tr>
             </table>
@@ -50,7 +50,7 @@
 
         <!-- Main Card -->
         <tr>
-          <td style="background-color:#16161e;border-radius:16px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+          <td style="background-color:#ffffff;border-radius:16px;border:1px solid rgba(28,28,35,0.08);overflow:hidden;box-shadow:0 20px 50px rgba(28,28,35,0.06);">
 
             <!-- Top accent line -->
             <table width="100%" cellpadding="0" cellspacing="0">
@@ -63,27 +63,27 @@
               <tr>
                 <td>
                   <!-- Label -->
-                  <p style="margin:0 0 28px;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#6b6b80;">
+                  <p style="margin:0 0 28px;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#a0a0a8;">
                     Etkinlik Oluşturuldu
                   </p>
 
                   <!-- Headline -->
-                  <h1 style="margin:0 0 16px;font-size:42px;font-weight:300;line-height:1.1;letter-spacing:-0.03em;color:#e8e8f0;">
-                    Tebrikler, <span th:text="${ownerName}" style="color:#f59e0b;">Organizatör</span>.
+                  <h1 style="margin:0 0 16px;font-size:42px;font-weight:300;line-height:1.1;letter-spacing:-0.03em;color:#1c1c23;">
+                    Tebrikler, <span th:text="${ownerName}" style="color:#d97706;">Organizatör</span>.
                   </h1>
-                  <p style="margin:0 0 48px;font-size:17px;font-weight:300;line-height:1.65;color:#8b8b9e;">
+                  <p style="margin:0 0 48px;font-size:17px;font-weight:300;line-height:1.65;color:#6b6b80;">
                     Etkinliğiniz başarıyla yayına alındı. Katılımcılar artık etkinliğinizi keşfedip kayıt olabilir.
                   </p>
 
                   <!-- Event Name Card -->
                   <table width="100%" cellpadding="0" cellspacing="0"
-                         style="background-color:#1c1c26;border-radius:10px;border:1px solid rgba(255,255,255,0.05);margin-bottom:40px;">
+                         style="background-color:#faf9f7;border-radius:10px;border:1px solid rgba(28,28,35,0.07);margin-bottom:40px;">
                     <tr>
                       <td style="padding:28px 32px;">
-                        <p style="margin:0 0 10px;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#4a4a5c;">
+                        <p style="margin:0 0 10px;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#a0a0a8;">
                           Etkinlik Adı
                         </p>
-                        <p style="margin:0;font-size:26px;font-weight:300;letter-spacing:-0.02em;color:#e8e8f0;"
+                        <p style="margin:0;font-size:26px;font-weight:300;letter-spacing:-0.02em;color:#1c1c23;"
                            th:text="${eventTitle}">[Etkinlik Başlığı]</p>
                       </td>
                     </tr>
@@ -92,21 +92,21 @@
                   <!-- Steps -->
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:12px;">
                     <tr>
-                      <td style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#4a4a5c;margin-right:16px;">01</span>
-                        <span style="font-size:14px;font-weight:300;color:#8b8b9e;">Katılımcılar etkinliğinizi keşfeder ve kayıt olur</span>
+                      <td style="padding:14px 0;border-bottom:1px solid rgba(28,28,35,0.07);">
+                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#c0b090;margin-right:16px;">01</span>
+                        <span style="font-size:14px;font-weight:300;color:#6b6b80;">Katılımcılar etkinliğinizi keşfeder ve kayıt olur</span>
                       </td>
                     </tr>
                     <tr>
-                      <td style="padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#4a4a5c;margin-right:16px;">02</span>
-                        <span style="font-size:14px;font-weight:300;color:#8b8b9e;">Her yeni kayıtta sisteme bildirim düşer</span>
+                      <td style="padding:14px 0;border-bottom:1px solid rgba(28,28,35,0.07);">
+                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#c0b090;margin-right:16px;">02</span>
+                        <span style="font-size:14px;font-weight:300;color:#6b6b80;">Her yeni kayıtta sisteme bildirim düşer</span>
                       </td>
                     </tr>
                     <tr>
                       <td style="padding:14px 0;">
-                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#4a4a5c;margin-right:16px;">03</span>
-                        <span style="font-size:14px;font-weight:300;color:#8b8b9e;">Etkinlik öncesinde katılımcılara otomatik hatırlatma gönderilir</span>
+                        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#c0b090;margin-right:16px;">03</span>
+                        <span style="font-size:14px;font-weight:300;color:#6b6b80;">Etkinlik öncesinde katılımcılara otomatik hatırlatma gönderilir</span>
                       </td>
                     </tr>
                   </table>
@@ -120,8 +120,8 @@
         <!-- Footer -->
         <tr>
           <td style="padding:28px 0 0;text-align:left;">
-            <p style="margin:0;font-size:11px;color:#3d3d4d;line-height:1.6;">
-              İyi etkinlikler dileriz, Aura Events Ekibi · © 2026 Aura Events
+            <p style="margin:0;font-size:11px;color:#b8b8c0;line-height:1.6;">
+              İyi etkinlikler dileriz, aKissy Events Ekibi · © 2026 aKissy Events
             </p>
           </td>
         </tr>
@@ -133,7 +133,4 @@
 
 </body>
 </html>
-
-
-
 

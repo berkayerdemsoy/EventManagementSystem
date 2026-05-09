@@ -75,4 +75,15 @@ public class UserController {
         return ResponseEntity.ok("Email verified successfully");
     }
 
+    /**
+     * PUT /users/profile/password
+     * Kimliği doğrulanmış kullanıcının şifresini değiştirir.
+     * Eski şifre yanlışsa 401, token yoksa 403 döner.
+     */
+    @PutMapping("/profile/password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordDto dto){
+        userService.changePassword(dto);
+        return ResponseEntity.noContent().build();
+    }
+
 }

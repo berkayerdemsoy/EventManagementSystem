@@ -24,4 +24,10 @@ public interface UserService {
 
     void confirmEmail(String token);
     AuthResponseDto login(UserLoginDto dto);
+
+    /**
+     * Authenticated kullanıcının şifresini değiştirir.
+     * Eski şifre doğrulanmadan yeni şifre set edilmez.
+     */
+    void changePassword(ChangePasswordDto dto);
 }

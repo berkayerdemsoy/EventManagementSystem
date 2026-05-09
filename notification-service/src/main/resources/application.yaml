@@ -42,4 +42,4 @@ kafka:
 
 notification:
   mail:
-    from: onboarding@resend.dev
+    from: info@akissy.com

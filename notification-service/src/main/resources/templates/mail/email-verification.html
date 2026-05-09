@@ -3,26 +3,22 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hesabınızı Doğrulayın – Aura Events</title>
+  <title>Hesabınızı Doğrulayın – aKissy Events</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0f0f13;font-family:'Segoe UI',system-ui,Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:#f5f4f0;font-family:'Segoe UI',system-ui,Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0f0f13;padding:48px 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f4f0;padding:48px 0;">
   <tr>
     <td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="width:100%;max-width:600px;">
 
-        <!-- Logo / Brand — blur_on icon via inline SVG + "Aura Events" -->
+        <!-- Logo / Brand -->
         <tr>
           <td style="padding:0 0 32px;text-align:left;">
             <table cellpadding="0" cellspacing="0">
               <tr>
-                <td style="vertical-align:middle;padding-right:8px;">
-                  <!--
-                    blur_on Material Symbol approximated as inline SVG:
-                    filled center circle + concentric opacity rings + 8 radial ticks
-                  -->
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="26" height="26" style="display:block;">
+                <td style="vertical-align:middle;padding-right:10px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28" style="display:block;">
                     <circle cx="50" cy="9"  r="5.5" fill="#feaa00" opacity="0.32"/>
                     <circle cx="76" cy="18" r="5.5" fill="#feaa00" opacity="0.32"/>
                     <circle cx="91" cy="44" r="5.5" fill="#feaa00" opacity="0.32"/>
@@ -45,7 +41,7 @@
                   </svg>
                 </td>
                 <td style="vertical-align:middle;">
-                  <span style="font-size:18px;font-weight:300;color:#e8e8f0;letter-spacing:0.1em;">Aura Events</span>
+                  <span style="font-size:18px;font-weight:300;color:#1c1c23;letter-spacing:0.1em;">aKissy Events</span>
                 </td>
               </tr>
             </table>
@@ -54,7 +50,7 @@
 
         <!-- Hero Card -->
         <tr>
-          <td style="background-color:#16161e;border-radius:16px;border:1px solid rgba(255,255,255,0.07);overflow:hidden;">
+          <td style="background-color:#ffffff;border-radius:16px;border:1px solid rgba(28,28,35,0.08);overflow:hidden;box-shadow:0 20px 50px rgba(28,28,35,0.06);">
 
             <!-- Top amber accent line -->
             <table width="100%" cellpadding="0" cellspacing="0">
@@ -68,26 +64,26 @@
                 <td style="padding:56px 48px 48px;">
 
                   <!-- Eyebrow label -->
-                  <p style="margin:0 0 28px;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#6b6b80;">
+                  <p style="margin:0 0 28px;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#a0a0a8;">
                     Hesap Doğrulama
                   </p>
 
                   <!-- Headline -->
-                  <h1 style="margin:0 0 20px;font-size:42px;font-weight:300;line-height:1.1;letter-spacing:-0.03em;color:#e8e8f0;">
+                  <h1 style="margin:0 0 20px;font-size:42px;font-weight:300;line-height:1.1;letter-spacing:-0.03em;color:#1c1c23;">
                     Hoş geldiniz.
                   </h1>
-                  <p style="margin:0 0 48px;font-size:17px;font-weight:300;line-height:1.65;color:#8b8b9e;">
-                    Aura Events hesabınızı aktifleştirmek için e-posta adresinizi doğrulamanız gerekiyor.
-                    Bu bağlantı <strong style="color:#c8c8d8;font-weight:500;">24 saat</strong> geçerlidir.
+                  <p style="margin:0 0 48px;font-size:17px;font-weight:300;line-height:1.65;color:#6b6b80;">
+                    aKissy Events hesabınızı aktifleştirmek için e-posta adresinizi doğrulamanız gerekiyor.
+                    Bu bağlantı <strong style="color:#1c1c23;font-weight:500;">24 saat</strong> geçerlidir.
                   </p>
 
                   <!-- CTA Button -->
                   <table cellpadding="0" cellspacing="0">
                     <tr>
-                      <td style="background:linear-gradient(135deg,#feaa00,#f97316);border-radius:8px;">
+                      <td style="background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:8px;box-shadow:0 4px 20px rgba(245,158,11,0.3);">
                         <a th:href="${verificationLink}"
                            href="#"
-                           style="display:inline-block;padding:16px 40px;color:#0f0f13;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;">
+                           style="display:inline-block;padding:16px 40px;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none;">
                           Hesabımı Doğrula →
                         </a>
                       </td>
@@ -97,12 +93,12 @@
                   <!-- Fallback link -->
                   <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:40px;">
                     <tr>
-                      <td style="border-top:1px solid rgba(255,255,255,0.06);padding-top:28px;">
-                        <p style="margin:0 0 8px;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#4a4a5c;">
+                      <td style="border-top:1px solid rgba(28,28,35,0.07);padding-top:28px;">
+                        <p style="margin:0 0 8px;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#a0a0a8;">
                           Veya bağlantıyı kopyalayın
                         </p>
                         <a th:href="${verificationLink}" th:text="${verificationLink}"
-                           style="font-size:12px;color:#5c5c7a;word-break:break-all;text-decoration:none;">link</a>
+                           style="font-size:12px;color:#c0a878;word-break:break-all;text-decoration:none;">link</a>
                       </td>
                     </tr>
                   </table>
@@ -116,9 +112,9 @@
         <!-- Footer -->
         <tr>
           <td style="padding:28px 0 0;text-align:left;">
-            <p style="margin:0;font-size:11px;color:#3d3d4d;line-height:1.6;">
+            <p style="margin:0;font-size:11px;color:#b8b8c0;line-height:1.6;">
               Bu maili siz talep etmediyseniz güvenle silebilirsiniz.<br/>
-              © 2026 Aura Events
+              © 2026 aKissy Events
             </p>
           </td>
         </tr>
@@ -130,5 +126,4 @@
 
 </body>
 </html>
-
 

@@ -17,7 +17,7 @@ public class ParticipantRegisteredHandler implements NotificationHandler {
 
     private final EmailTemplateService emailTemplateService;
 
-    @Value("${notification.mail.from:onboarding@resend.dev}")
+    @Value("${notification.mail.from:info@akissy.com}")
     private String fromEmail;
 
     @Override

@@ -7,6 +7,7 @@ import com.example.ems_common.exceptions.ForbiddenException;
 import com.example.ems_common.exceptions.InvalidCredentialsException;
 import com.example.ems_common.exceptions.NotFoundException;
 import com.example.ems_common.exceptions.TooManyRequestsException;
+import com.example.ems_common.security.SecurityUtils;
 import com.example.user_service_app.configs.adminLoginConfigs.AdminProperties;
 import com.example.user_service_app.configs.emailConfigs.HashUtil;
 import com.example.user_service_app.configs.frontendConfigs.FrontendProperties;
@@ -97,6 +98,7 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
     }
 
+    @Transactional
     @Override
     public void beOwner(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
@@ -159,8 +161,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void confirmEmail(String token) {
-        String hashedToken = HashUtil.hashToken(token);
+    public void confirmEmail(String token) {        String hashedToken = HashUtil.hashToken(token);
         VerificationToken verificationToken = verificationTokenRepository.findByTokenHash(hashedToken)
                 .orElse(null);
 
@@ -190,6 +191,25 @@ public class UserServiceImpl implements UserService {
             // artık token'a gerek yok — temizle.
             verificationTokenRepository.delete(verificationToken);
         }
+    }
+
+    @Transactional
+    @Override
+    public void changePassword(ChangePasswordDto dto) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new ForbiddenException("Authentication required");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        userRepository.save(user);
     }
 
 

@@ -3,6 +3,7 @@ package com.example.user_service_app.grpc;
 import com.example.ems_common.exceptions.ForbiddenException;
 import com.example.ems_common.exceptions.NotFoundException;
 import com.example.user_service_app.service.UserService;
+import org.springframework.security.access.AccessDeniedException;
 import com.example.user_service_client.dto.UserResponseDto;
 import com.example.user_service_client.grpc.*;
 import io.grpc.Status;
@@ -98,8 +99,15 @@ public class UserGrpcServiceImpl extends UserGrpcServiceGrpc.UserGrpcServiceImpl
                             .withDescription(e.getMessage())
                             .asRuntimeException()
             );
+        } catch (AccessDeniedException e) {
+            log.warn("gRPC BeOwner — Spring Security erişim engeli: {}", e.getMessage());
+            responseObserver.onError(
+                    Status.PERMISSION_DENIED
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
         } catch (Exception e) {
-            log.error("gRPC BeOwner — beklenmeyen hata", e);
+            log.error("gRPC BeOwner — beklenmeyen hata: {}", e.getMessage(), e);
             responseObserver.onError(
                     Status.INTERNAL
                             .withDescription("Internal server error")
