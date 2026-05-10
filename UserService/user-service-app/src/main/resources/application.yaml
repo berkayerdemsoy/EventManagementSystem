@@ -12,11 +12,14 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    contexts: dev, test
   mail:
     host: smtp.resend.com
     port: 587
@@ -104,6 +107,11 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
+
+logging:
+  level:
+    liquibase: DEBUG
+    com.zaxxer.hikari: DEBUG
 
 
 

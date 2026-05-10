@@ -1,0 +1,99 @@
+databaseChangeLog:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ChangeSet 1 — Dummy Etkinlikler (context: dev, test)
+  # owner_id = 1 → user-service'deki admin kullanıcısı (denormalized)
+  # category_id'ler v1.0.1'de eklenen kategorilerin otomatik artan ID'lerine karşılık gelir:
+  #   1=Networking, 2=Reading & Literature, 3=Art & Culture, 4=Technology & Innovation ...
+  # ─────────────────────────────────────────────────────────────────────────────
+  - changeSet:
+      id: "v1.0.2-1-insert-dummy-events"
+      author: ems
+      context: "dev, test"
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO events
+                (title, description, owner_id, owner_email, address, city, capacity, current_attendees, price, status, category_id, start_date, end_date, created_at, updated_at)
+              VALUES
+                (
+                  'Istanbul Tech Summit 2026',
+                  'Türkiye''nin en kapsamlı teknoloji ve inovasyon zirvesi. Startup ekosistemi, yapay zeka ve geleceğin trendleri ele alınacak.',
+                  1, 'admin@ems.com',
+                  'Lütfi Kırdar Kongre Merkezi', 'İstanbul',
+                  500, 0, 1500.00, 'UPCOMING',
+                  (SELECT id FROM categories WHERE name = 'Technology & Innovation'),
+                  NOW() + INTERVAL '30 days', NOW() + INTERVAL '31 days',
+                  NOW(), NOW()
+                ),
+                (
+                  'Boğaz''da Fine Dining Akşamı',
+                  'Boğaz manzarası eşliğinde ünlü şeflerden özel bir gastronomi deneyimi. Sınırlı kontenjan.',
+                  1, 'admin@ems.com',
+                  'Kuruçeşme, Bebek Sahili No:12', 'İstanbul',
+                  40, 0, 3500.00, 'UPCOMING',
+                  (SELECT id FROM categories WHERE name = 'Fine Dining & Gastronomy'),
+                  NOW() + INTERVAL '15 days', NOW() + INTERVAL '15 days' + INTERVAL '4 hours',
+                  NOW(), NOW()
+                ),
+                (
+                  'Mindfulness & Yoga Retreat',
+                  'Hafta sonu boyunca nefes teknikleri, meditasyon ve yoga pratiği. Erzurum dağlarında doğayla iç içe.',
+                  1, 'admin@ems.com',
+                  'Palandöken Dağ Evi', 'Erzurum',
+                  25, 0, 2200.00, 'UPCOMING',
+                  (SELECT id FROM categories WHERE name = 'Wellness & Mindfulness'),
+                  NOW() + INTERVAL '20 days', NOW() + INTERVAL '22 days',
+                  NOW(), NOW()
+                ),
+                (
+                  'EMS Book Club — Ağustos Seçkisi',
+                  'Bu ay: "Sapiens" (Yuval Noah Harari). Katılımcılar kitabı okuyarak gelecek, moderatör eşliğinde tartışacağız.',
+                  1, 'admin@ems.com',
+                  'Beyoğlu Kültür Evi, 3. Kat', 'İstanbul',
+                  20, 0, 0.00, 'UPCOMING',
+                  (SELECT id FROM categories WHERE name = 'Reading & Literature'),
+                  NOW() + INTERVAL '10 days', NOW() + INTERVAL '10 days' + INTERVAL '2 hours',
+                  NOW(), NOW()
+                ),
+                (
+                  'Girişimci Buluşması — Angels & Founders',
+                  'Erken aşama girişimciler ve angel yatırımcıların bir araya geldiği networking etkinliği.',
+                  1, 'admin@ems.com',
+                  'Galata Technopark, B Blok', 'İstanbul',
+                  80, 0, 750.00, 'UPCOMING',
+                  (SELECT id FROM categories WHERE name = 'Entrepreneurship'),
+                  NOW() + INTERVAL '7 days', NOW() + INTERVAL '7 days' + INTERVAL '3 hours',
+                  NOW(), NOW()
+                );
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ChangeSet 2 — Dummy Katılım Kayıtları (context: dev, test)
+  # participant_id = 1 → user-service'deki admin kullanıcısı (denormalized)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - changeSet:
+      id: "v1.0.2-2-insert-dummy-participations"
+      author: ems
+      context: "dev, test"
+      changes:
+        - sql:
+            sql: |
+              -- Admin kullanıcısını bazı etkinliklere katılımcı olarak ekle
+              INSERT INTO participations
+                (event_id, participant_id, participant_email, registered_at, reminder_sent)
+              SELECT id, 1, 'admin@ems.com', NOW(), false
+              FROM events
+              WHERE title = 'Istanbul Tech Summit 2026';
+
+              INSERT INTO participations
+                (event_id, participant_id, participant_email, registered_at, reminder_sent)
+              SELECT id, 1, 'admin@ems.com', NOW(), false
+              FROM events
+              WHERE title = 'EMS Book Club — Ağustos Seçkisi';
+
+              -- current_attendees sayaçlarını güncelle
+              UPDATE events
+              SET current_attendees = (
+                SELECT COUNT(*) FROM participations WHERE participations.event_id = events.id
+              );
+

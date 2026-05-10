@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/v1.0.0-create-events-schema.yaml
+  - include:
+      file: db/changelog/v1.0.1-insert-fix-categories.yaml
+  - include:
+      file: db/changelog/v1.0.2-insert-dummy-data.yaml
+

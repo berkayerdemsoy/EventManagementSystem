@@ -1,0 +1,121 @@
+databaseChangeLog:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ChangeSet 1 — Tablo: users
+  # Entity: com.example.user_service_app.entity.User
+  # @Table(name = "users")
+  # ─────────────────────────────────────────────────────────────────────────────
+  - changeSet:
+      id: "v1.0.0-1-create-users-table"
+      author: ems
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              # @Column(unique = true, nullable = false)
+              - column:
+                  name: username
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_users_username
+
+              # @Column(nullable = false)
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+              # @Column(unique = true, nullable = false)
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_users_email
+
+              # @Enumerated(EnumType.STRING) — Roles: ADMIN | USER | EVENT_OWNER
+              - column:
+                  name: role
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              # @Column(name = "is_verified", nullable = false)  default = false
+              - column:
+                  name: is_verified
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+
+              # @Column(name = "created_at", nullable = false)  set by application
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ChangeSet 2 — Tablo: user_profiles
+  # Entity: com.example.user_service_app.entity.UserProfile
+  # @Table(name = "user_profiles")
+  # ─────────────────────────────────────────────────────────────────────────────
+  - changeSet:
+      id: "v1.0.0-2-create-user-profiles-table"
+      author: ems
+      changes:
+        - createTable:
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              # @Column(name = "first_name")  — nullable
+              - column:
+                  name: first_name
+                  type: VARCHAR(255)
+
+              # @Column(name = "last_name")  — nullable
+              - column:
+                  name: last_name
+                  type: VARCHAR(255)
+
+              # @Column(name = "phone_number")  — nullable
+              - column:
+                  name: phone_number
+                  type: VARCHAR(50)
+
+              # @JoinColumn(name = "user_id", nullable = false, unique = true)
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_user_profiles_user_id
+
+        # FK: user_profiles.user_id → users.id
+        - addForeignKeyConstraint:
+            constraintName: fk_user_profiles_user_id
+            baseTableName: user_profiles
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+

@@ -1,0 +1,7 @@
+# ─── Production Profile Overrides ────────────────────────────────────────────
+# Bu dosya yalnızca -Dspring.profiles.active=prod veya SPRING_PROFILES_ACTIVE=prod
+# ile çalıştırıldığında application.yaml'ın üzerine eklenir.
+spring:
+  liquibase:
+    contexts: prod
+

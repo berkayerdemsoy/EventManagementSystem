@@ -1,0 +1,71 @@
+databaseChangeLog:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ChangeSet 1 — Sabit Kategori Listesi (context yok → her ortamda çalışır)
+  # 10 adet elit/premium etkinlik kategorisi
+  # ─────────────────────────────────────────────────────────────────────────────
+  - changeSet:
+      id: "v1.0.1-1-insert-categories"
+      author: ems
+      changes:
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Networking"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Reading & Literature"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Art & Culture"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Technology & Innovation"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Wellness & Mindfulness"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Fine Dining & Gastronomy"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Music & Performance"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Entrepreneurship"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Sports & Adventure"
+        - insert:
+            tableName: categories
+            columns:
+              - column:
+                  name: name
+                  value: "Travel & Exploration"
+

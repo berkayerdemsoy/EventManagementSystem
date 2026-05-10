@@ -109,6 +109,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Liquibase — veritabanı versiyonlama -->
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+		</dependency>
+
 		<!-- OpenAPI / Swagger UI -->
 		<dependency>
 			<groupId>org.springdoc</groupId>

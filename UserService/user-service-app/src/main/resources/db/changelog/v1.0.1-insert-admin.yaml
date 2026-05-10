@@ -1,0 +1,59 @@
+databaseChangeLog:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ChangeSet 1 — Dev & Test: Hardcoded admin hesabı
+  # Şifre '12345' BCrypt(cost=10) ile hash'lenmiştir.
+  # Gerçek bir ortamda bu hash'i Spring Security BCryptPasswordEncoder ile
+  # yeniden üretmeyi unutmayın:
+  #   new BCryptPasswordEncoder().encode("12345")
+  # ─────────────────────────────────────────────────────────────────────────────
+  - changeSet:
+      id: "v1.0.1-1-insert-admin-dev"
+      author: ems
+      context: "dev, test"
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO users (username, password, email, role, is_verified, created_at)
+              VALUES (
+                'admin',
+                '$2a$10$Xl0yhvzLIaJCDdKBS0Yl.eHivt9WPbQnQY5RnGg6vTEv2DZjrwQri',
+                'admin@ems.com',
+                'ADMIN',
+                true,
+                NOW()
+              );
+
+              INSERT INTO user_profiles (first_name, last_name, phone_number, user_id)
+              SELECT 'EMS', 'Admin', NULL, id
+              FROM users
+              WHERE username = 'admin';
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ChangeSet 2 — Production: Ortam değişkenlerinden okunan güvenli admin hesabı
+  # Gerekli ortam değişkenleri (application-prod.yaml üzerinden Liquibase'e iletilir):
+  #   ADMIN_USERNAME      — admin kullanıcı adı
+  #   ADMIN_PASSWORD_HASH — BCrypt ile hash'lenmiş şifre (Spring Security uyumlu)
+  # ─────────────────────────────────────────────────────────────────────────────
+  - changeSet:
+      id: "v1.0.1-2-insert-admin-prod"
+      author: ems
+      context: "prod"
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO users (username, password, email, role, is_verified, created_at)
+              VALUES (
+                '${ADMIN_USERNAME}',
+                '${ADMIN_PASSWORD_HASH}',
+                'admin@ems.com',
+                'ADMIN',
+                true,
+                NOW()
+              );
+
+              INSERT INTO user_profiles (first_name, last_name, phone_number, user_id)
+              SELECT 'EMS', 'Admin', NULL, id
+              FROM users
+              WHERE username = '${ADMIN_USERNAME}';
+

@@ -90,6 +90,7 @@ services:
       # Sadece container network içine açık — dış dünyaya kapalı (internal trafik).
       - "9090"
     environment:
+      SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
       GRPC_PORT: 9090
       DB_HOST: user-service-db
@@ -100,6 +101,9 @@ services:
       EUREKA_URL: http://eureka-server:8761/eureka
       ADMIN_USERNAMES: ${ADMIN_USERNAMES}
       ADMIN_PASSWORDS: ${ADMIN_PASSWORDS}
+      # Liquibase prod admin kullanıcısı için gerekli (application-prod.yaml'da kullanılır)
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
       RESEND_API_KEY: ${RESEND_API_KEY}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
@@ -152,6 +156,7 @@ services:
     expose:
       - "8081"
     environment:
+      SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8081
       DB_HOST: event-service-db
       DB_PORT: 5432

@@ -1,0 +1,12 @@
+# ─── Production Profile Overrides ────────────────────────────────────────────
+# Bu dosya yalnızca -Dspring.profiles.active=prod veya SPRING_PROFILES_ACTIVE=prod
+# ile çalıştırıldığında application.yaml'ın üzerine eklenir.
+spring:
+  liquibase:
+    contexts: prod
+    # Prod admin kullanıcısı için Liquibase parametreleri.
+    # ADMIN_USERNAME ve ADMIN_PASSWORD_HASH ortam değişkenleri gereklidir.
+    parameters:
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+
