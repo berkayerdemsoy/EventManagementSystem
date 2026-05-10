@@ -17,7 +17,7 @@ databaseChangeLog:
               INSERT INTO users (username, password, email, role, is_verified, created_at)
               VALUES (
                 'admin',
-                '$2a$10$Xl0yhvzLIaJCDdKBS0Yl.eHivt9WPbQnQY5RnGg6vTEv2DZjrwQri',
+                '$2a$12$5BuN/AqlwRpuAbDiOSSCJexGNwRv8m8CyrN2.MMGO8/3X.PAQvDrW',
                 'admin@ems.com',
                 'ADMIN',
                 true,
