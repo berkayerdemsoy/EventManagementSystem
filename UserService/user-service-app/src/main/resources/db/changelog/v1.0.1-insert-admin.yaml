@@ -2,7 +2,7 @@ databaseChangeLog:
 
   # ─────────────────────────────────────────────────────────────────────────────
   # ChangeSet 1 — Dev & Test: Hardcoded admin hesabı
-  # Şifre '12345' BCrypt(cost=10) ile hash'lenmiştir.
+  # Şifre 'admin' BCrypt(cost=12) ile hash'lenmiştir.
   # Gerçek bir ortamda bu hash'i Spring Security BCryptPasswordEncoder ile
   # yeniden üretmeyi unutmayın:
   #   new BCryptPasswordEncoder().encode("12345")
@@ -11,6 +11,9 @@ databaseChangeLog:
       id: "v1.0.1-1-insert-admin-dev"
       author: ems
       context: "dev, test"
+      validCheckSum:
+        - "9:83217b631967e87bad7129ee30d74939"
+        - "9:9de6ef70ba6435e54cc754e8c3186318"
       changes:
         - sql:
             sql: |
