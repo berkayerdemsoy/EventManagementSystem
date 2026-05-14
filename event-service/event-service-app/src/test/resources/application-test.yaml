@@ -1,0 +1,53 @@
+# ─── Test profili: gerçek servis bağımlılıkları yerine in-memory/mock kullan ──
+
+spring:
+  # H2 in-memory DB — PostgreSQL yerine
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop     # Liquibase kapalıyken Hibernate şema oluşturur
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  # Liquibase kapalı — changelog PostgreSQL-spesifik SQL içerebilir
+  liquibase:
+    enabled: false
+
+  # Quartz in-memory — JDBC store H2 ile uyumsuz tablo şeması
+  quartz:
+    job-store-type: memory
+    properties:
+      org.quartz.jobStore.isClustered: false
+
+  # Kafka ve Eureka auto-configuration'unu devre dışı bırak
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+      - org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
+      - org.springframework.cloud.netflix.eureka.loadbalancer.LoadBalancerEurekaAutoConfiguration
+
+  # gRPC client — gerçek discovery yerine static adres (Eureka yok)
+  grpc:
+    client:
+      channels:
+        user-service:
+          address: "static://localhost:9090"
+          negotiation-type: plaintext
+
+# Eureka client kapalı
+eureka:
+  client:
+    enabled: false
+    fetch-registry: false
+    register-with-eureka: false
+
+# JWT test değeri
+jwt:
+  secret: test-jwt-secret-key-that-is-at-least-64-characters-long-for-hmac-sha256
+  expiration: 3600000

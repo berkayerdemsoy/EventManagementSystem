@@ -1,0 +1,25 @@
+# ─── Test profili: Kafka embedded, Mail mock ──────────────────────────────────
+
+spring:
+  # Kafka auto-configuration'u devre dışı bırak — test için gerekli değil
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+  # Mail bağlantı denemesi yapmasın — SMTP yok
+  mail:
+    host: localhost
+    port: 25
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+            required: false
+
+management:
+  health:
+    mail:
+      enabled: false   # Mail health check kapalı
+
