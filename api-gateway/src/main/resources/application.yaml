@@ -74,11 +74,11 @@ springdoc:
     path: /docs
     enabled: true
     urls:
-      - name: "👤 User Service"
+      - name: " User Service"
         url: /v3/api-docs/user-service
-      - name: "📅 Event Service"
+      - name: " Event Service"
         url: /v3/api-docs/event-service
-    urls-primary-name: "👤 User Service"
+    urls-primary-name: " User Service"
     display-request-duration: true
     operations-sorter: method
     tags-sorter: alpha
