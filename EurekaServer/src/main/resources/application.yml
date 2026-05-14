@@ -1,6 +1,10 @@
 spring:
   application:
     name: eureka-server
+  security:
+    user:
+        name: ${EUREKA_ADMIN_USERNAME:admin}
+        password: ${EUREKA_ADMIN_PASSWORD:admin}
 
 server:
   port: ${SERVER_PORT:8761}
@@ -11,6 +15,9 @@ eureka:
   client:
     register-with-eureka: false
     fetch-registry: false
+    # Peer replication istekleri de Basic Auth gerektirir; credentials burada verilmezse 401 alınır
+    service-url:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${EUREKA_HOSTNAME:localhost}:${SERVER_PORT:8761}/eureka/
   server:
     wait-time-in-ms-when-sync-empty: 0
 

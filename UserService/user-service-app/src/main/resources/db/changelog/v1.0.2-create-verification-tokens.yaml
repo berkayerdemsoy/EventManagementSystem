@@ -1,0 +1,67 @@
+databaseChangeLog:
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # ChangeSet 1 — Tablo: verification_tokens
+  # Entity: com.example.user_service_app.configs.emailConfigs.VerificationToken
+  # @Table(name = "verification_tokens")
+  #
+  # Amaç: E-posta doğrulama sürecinde kullanıcıya gönderilen token'ı saklamak.
+  #        Token oluşturulduğunda 24 saat geçerlidir.
+  # ─────────────────────────────────────────────────────────────────────────────
+  - changeSet:
+      id: "v1.0.2-1-create-verification-tokens-table"
+      author: ems
+      changes:
+        - createTable:
+            tableName: verification_tokens
+            columns:
+              # @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              # @Column(unique = true, nullable = false, name = "token_hash")
+              - column:
+                  name: token_hash
+                  type: VARCHAR(512)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_verification_tokens_token_hash
+
+              # @JoinColumn(nullable = false, name = "user_id")  — OneToOne → users
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_verification_tokens_user_id
+
+              # @Column(name = "expiry_date", nullable = false)
+              - column:
+                  name: expiry_date
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+              # @Column(name = "created_at", nullable = false)
+              - column:
+                  name: created_at
+                  type: TIMESTAMP WITHOUT TIME ZONE
+                  constraints:
+                    nullable: false
+
+        # FK: verification_tokens.user_id → users.id
+        - addForeignKeyConstraint:
+            constraintName: fk_verification_tokens_user_id
+            baseTableName: verification_tokens
+            baseColumnNames: user_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+

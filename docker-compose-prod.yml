@@ -36,6 +36,8 @@ services:
     environment:
       EUREKA_HOSTNAME: eureka-server
       SERVER_PORT: 8761
+      EUREKA_ADMIN_USERNAME: ${EUREKA_ADMIN_USERNAME}
+      EUREKA_ADMIN_PASSWORD: ${EUREKA_ADMIN_PASSWORD}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
       interval: 30s
@@ -119,7 +121,9 @@ services:
     container_name: ems-api-gateway
     environment:
       SERVER_PORT: 8090
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_USERNAME: ${EUREKA_ADMIN_USERNAME}
+      EUREKA_PASSWORD: ${EUREKA_ADMIN_PASSWORD}
+      EUREKA_HOST: eureka-server
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}   # .env → örn: https://akissy.com
     labels:
       - "traefik.enable=true"
@@ -155,7 +159,9 @@ services:
       DB_NAME: user_service_db
       DB_USERNAME: postgres
       DB_PASSWORD: ${DB_PASSWORD}
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_USERNAME: ${EUREKA_ADMIN_USERNAME}
+      EUREKA_PASSWORD: ${EUREKA_ADMIN_PASSWORD}
+      EUREKA_HOST: eureka-server
       KAFKA_BROKERS: kafka:29092
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
@@ -192,7 +198,9 @@ services:
       DB_NAME: event_service_db
       DB_USERNAME: postgres
       DB_PASSWORD: ${EVENT_DB_PASSWORD}
-      EUREKA_URL: http://eureka-server:8761/eureka
+      EUREKA_USERNAME: ${EUREKA_ADMIN_USERNAME}
+      EUREKA_PASSWORD: ${EUREKA_ADMIN_PASSWORD}
+      EUREKA_HOST: eureka-server
       KAFKA_BROKERS: kafka:29092
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
