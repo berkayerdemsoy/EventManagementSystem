@@ -1,10 +1,14 @@
+# syntax=docker/dockerfile:1
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# GitHub Packages auth — ems-common buradan çekiliyor
-ARG GITHUB_ACTOR
-ARG GITHUB_TOKEN
-RUN mkdir -p /root/.m2 && printf '<settings>\n  <servers>\n    <server>\n      <id>github</id>\n      <username>%s</username>\n      <password>%s</password>\n    </server>\n  </servers>\n</settings>' "$GITHUB_ACTOR" "$GITHUB_TOKEN" > /root/.m2/settings.xml
+# GitHub Packages auth — BuildKit secret mount: token hiçbir image layer'ına yazılmaz.
+RUN --mount=type=secret,id=github_token \
+    --mount=type=secret,id=github_actor \
+    mkdir -p /root/.m2 && \
+    printf '<settings>\n  <servers>\n    <server>\n      <id>github</id>\n      <username>%s</username>\n      <password>%s</password>\n    </server>\n  </servers>\n</settings>' \
+    "$(cat /run/secrets/github_actor)" "$(cat /run/secrets/github_token)" \
+    > /root/.m2/settings.xml
 
 COPY pom.xml ./
 RUN mvn dependency:go-offline -B

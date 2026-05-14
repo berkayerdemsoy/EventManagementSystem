@@ -19,6 +19,9 @@ target/
 .env.local
 .env.*.local
 *.env
+# Catch .env in all subdirectories (EurekaServer/.env, user-service-app/.env …)
+**/.env
+**/.env.local
 
 # ========================
 # IntelliJ IDEA

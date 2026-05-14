@@ -3,3 +3,9 @@
 **/target
 **/*.log
 **/node_modules
+
+# ─── Secrets — never go into build context ────────────────────────────────────
+**/.env
+**/.env.*
+!**/.env.example
+

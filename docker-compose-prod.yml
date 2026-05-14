@@ -2,10 +2,30 @@ version: '3.8'
 
 services:
 
+  # ─── Docker Socket Proxy: Traefik'e sadece okuma izni verir ──────────────────
+  # Traefik ele geçirilse bile Docker daemon'a tam erişim sağlanamaz.
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: socket-proxy
+    environment:
+      CONTAINERS: 1   # container label okuma — Traefik discovery için gerekli
+      NETWORKS: 1
+      SERVICES: 0
+      TASKS: 0
+      VOLUMES: 0
+      POST: 0         # yazma işlemleri tamamen kapalı
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket-proxy-network
+    restart: unless-stopped
+
   # ─── Traefik: Sınır Güvenliği, SSL ve HTTP→HTTPS Yönlendirme ─────────────────
   traefik:
     image: traefik:v3.0
     container_name: traefik
+    environment:
+      - DOCKER_HOST=tcp://socket-proxy:2375   # socket yerine proxy üzerinden bağlan
     command:
       - "--api.dashboard=false"                                        # Dashboard kapalı (güvenlik)
       - "--providers.docker=true"
@@ -16,17 +36,20 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=berkayerdemsoy@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--log.level=WARN"
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      # docker.sock artık burada yok — socket-proxy üzerinden erişiliyor
       - "./letsencrypt:/letsencrypt"
     networks:
       - microservices-network
+      - socket-proxy-network
+    depends_on:
+      - socket-proxy
     restart: unless-stopped
 
   # ─── Eureka: Servis Keşfi (sadece iç ağ) ─────────────────────────────────────
@@ -245,3 +268,6 @@ volumes:
 networks:
   microservices-network:
     driver: bridge
+  socket-proxy-network:   # izole ağ: sadece traefik + socket-proxy erişebilir
+    driver: bridge
+    internal: true         # dış dünyaya çıkış yok

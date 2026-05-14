@@ -33,7 +33,7 @@ services:
     environment:
       POSTGRES_DB: user_service_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}   # dev fallback; prod .env'den gelir
     volumes:
       - user-service-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -83,9 +83,9 @@ services:
     build:
       context: ./UserService
       dockerfile: Dockerfile
-      args:
-        GITHUB_ACTOR: ${GITHUB_ACTOR}
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
+        - github_actor
     image: user-service:latest
     container_name: ems-user-service
     expose:
@@ -101,7 +101,7 @@ services:
       DB_PORT: 5432
       DB_NAME: user_service_db
       DB_USERNAME: postgres
-      DB_PASSWORD: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
       EUREKA_USERNAME: ${EUREKA_ADMIN_USERNAME}
       EUREKA_PASSWORD: ${EUREKA_ADMIN_PASSWORD}
       EUREKA_HOST: eureka-server
@@ -137,7 +137,7 @@ services:
     environment:
       POSTGRES_DB: event_service_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${EVENT_DB_PASSWORD:-postgres}   # dev fallback; prod .env'den gelir
     volumes:
       - event-service-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -154,9 +154,9 @@ services:
     build:
       context: .
       dockerfile: event-service/Dockerfile
-      args:
-        GITHUB_ACTOR: ${GITHUB_ACTOR}
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
+        - github_actor
     image: event-service:latest
     container_name: ems-event-service
     expose:
@@ -168,7 +168,7 @@ services:
       DB_PORT: 5432
       DB_NAME: event_service_db
       DB_USERNAME: postgres
-      DB_PASSWORD: postgres
+      DB_PASSWORD: ${EVENT_DB_PASSWORD:-postgres}
       EUREKA_USERNAME: ${EUREKA_ADMIN_USERNAME}
       EUREKA_PASSWORD: ${EUREKA_ADMIN_PASSWORD}
       EUREKA_HOST: eureka-server
@@ -200,7 +200,9 @@ services:
     ports:
       - "9092:9092"
     environment:
-      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+      # Dev fallback değeri kullanılır; .env'e KAFKA_CLUSTER_ID eklenirse öncelikli olur.
+      # ⚠️ Prod .env'de dev ile AYNI değer VERİLMEMELİ.
+      CLUSTER_ID: ${KAFKA_CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: "broker,controller"
       KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:9093"
@@ -244,9 +246,9 @@ services:
     build:
       context: ./notification-service
       dockerfile: Dockerfile
-      args:
-        GITHUB_ACTOR: ${GITHUB_ACTOR}
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
+      secrets:
+        - github_token
+        - github_actor
     image: notification-service:latest
     container_name: ems-notification-service
     environment:
@@ -260,25 +262,46 @@ services:
       - microservices-network
     restart: unless-stopped
 
+  # ─── Docker Socket Proxy (dev) ───────────────────────────────────────────────
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    container_name: socket-proxy
+    environment:
+      CONTAINERS: 1
+      NETWORKS: 1
+      SERVICES: 0
+      TASKS: 0
+      VOLUMES: 0
+      POST: 0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - socket-proxy-network
+    restart: unless-stopped
+
   traefik:
     image: traefik:v3.0
     container_name: traefik
+    environment:
+      - DOCKER_HOST=tcp://socket-proxy:2375
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=senin-mail-adresin@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL:-dev@localhost}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "./letsencrypt:/letsencrypt"
     networks:
       - microservices-network
+      - socket-proxy-network
+    depends_on:
+      - socket-proxy
     restart: unless-stopped
 
 
@@ -289,3 +312,13 @@ volumes:
 networks:
   microservices-network:
     driver: bridge
+  socket-proxy-network:
+    driver: bridge
+    internal: true
+
+# ─── BuildKit secrets: env'den okunur, image layer'ına yazılmaz ──────────────
+secrets:
+  github_token:
+    environment: GITHUB_TOKEN   # .env veya shell env'inden alınır
+  github_actor:
+    environment: GITHUB_ACTOR   # GitHub kullanıcı adın
