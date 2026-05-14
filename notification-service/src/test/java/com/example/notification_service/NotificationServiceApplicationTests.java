@@ -1,11 +1,13 @@
 package com.example.notification_service;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@org.springframework.boot.test.autoconfigure.ImportAutoConfiguration(exclude = KafkaAutoConfiguration.class)
 class NotificationServiceApplicationTests {
 
 	@Test

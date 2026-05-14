@@ -1,4 +1,5 @@
 # ─── Test profili: gerçek servis bağımlılıkları yerine in-memory/mock kullan ──
+# Kafka/Eureka exclusion → EventServiceAppApplicationTests @ImportAutoConfiguration ile yapılıyor
 
 spring:
   # H2 in-memory DB — PostgreSQL yerine
@@ -9,7 +10,7 @@ spring:
     driver-class-name: org.h2.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop     # Liquibase kapalıyken Hibernate şema oluşturur
+      ddl-auto: create-drop
     show-sql: false
     properties:
       hibernate:
@@ -24,13 +25,6 @@ spring:
     job-store-type: memory
     properties:
       org.quartz.jobStore.isClustered: false
-
-  # Kafka ve Eureka auto-configuration'unu devre dışı bırak
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
-      - org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration
-      - org.springframework.cloud.netflix.eureka.loadbalancer.LoadBalancerEurekaAutoConfiguration
 
   # gRPC client — gerçek discovery yerine static adres (Eureka yok)
   grpc:

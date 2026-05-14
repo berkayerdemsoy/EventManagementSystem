@@ -1,12 +1,8 @@
-# ─── Test profili: Kafka embedded, Mail mock ──────────────────────────────────
+# ─── Test profili: Mail mock ──────────────────────────────────────────────────
+# Kafka exclusion → NotificationServiceApplicationTests @ImportAutoConfiguration ile yapılıyor
 
 spring:
-  # Kafka auto-configuration'u devre dışı bırak — test için gerekli değil
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
-
-  # Mail bağlantı denemesi yapmasın — SMTP yok
+  # Mail bağlantı denemesi yapmasın — test ortamında SMTP yok
   mail:
     host: localhost
     port: 25
@@ -22,4 +18,3 @@ management:
   health:
     mail:
       enabled: false   # Mail health check kapalı
-
