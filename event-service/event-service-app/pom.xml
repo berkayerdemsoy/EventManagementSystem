@@ -31,11 +31,6 @@
 		<spring-cloud.version>2025.1.1</spring-cloud.version>
 	</properties>
 	<dependencies>
-		<!-- Liquibase — veritabanı versiyonlama -->
-		<dependency>
-			<groupId>org.liquibase</groupId>
-			<artifactId>liquibase-core</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>com.example</groupId>
 			<artifactId>event-service-client</artifactId>

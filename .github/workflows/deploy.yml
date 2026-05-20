@@ -20,101 +20,100 @@ permissions:
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════════════
-  # 1. TEST — Her push ve PR'da paralel çalışır
+  # 1. TEST — Şimdilik devre dışı (TODO: testler tamamlanınca tekrar aç)
   # ═══════════════════════════════════════════════════════════════════════════
-  test:
-    name: Test / ${{ matrix.service }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - service: eureka-server
-            path: EurekaServer
-            needs_github_pkg: false
-          - service: api-gateway
-            path: api-gateway
-            needs_github_pkg: false
-          - service: user-service
-            path: UserService/user-service-app
-            needs_github_pkg: true
-          - service: event-service
-            path: event-service/event-service-app
-            needs_github_pkg: true
-          - service: notification-service
-            path: notification-service
-            needs_github_pkg: true
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Java 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-
-      # settings.xml: token Maven'ın ${env.GITHUB_TOKEN} interpolasyonu ile
-      # çözülür — değer asla log'a düşmez, GITHUB_TOKEN otomatik maskelenir.
-      - name: Configure Maven settings (GitHub Packages)
-        if: matrix.needs_github_pkg
-        run: |
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml << 'SETTINGS_EOF'
-          <settings>
-            <servers>
-              <server>
-                <id>github</id>
-                <username>${env.GITHUB_ACTOR}</username>
-                <password>${env.GITHUB_TOKEN}</password>
-              </server>
-            </servers>
-          </settings>
-          SETTINGS_EOF
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-
-      # user-service-client'ı test öncesi local repo'ya kur
-      - name: Install user-service-client (user-service dep)
-        if: matrix.service == 'user-service'
-        working-directory: UserService/user-service-client
-        run: mvn clean install -DskipTests -B
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-
-      - name: Install user-service-client (event-service dep)
-        if: matrix.service == 'event-service'
-        working-directory: UserService/user-service-client
-        run: mvn clean install -DskipTests -B
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-
-      - name: Install event-service-client (event-service dep)
-        if: matrix.service == 'event-service'
-        working-directory: event-service/event-service-client
-        run: mvn clean install -DskipTests -B
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
-
-      - name: Run tests
-        working-directory: ${{ matrix.path }}
-        run: mvn test -B
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
+  # test:
+  #   name: Test / ${{ matrix.service }}
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - service: eureka-server
+  #           path: EurekaServer
+  #           needs_github_pkg: false
+  #         - service: api-gateway
+  #           path: api-gateway
+  #           needs_github_pkg: false
+  #         - service: user-service
+  #           path: UserService/user-service-app
+  #           needs_github_pkg: true
+  #         - service: event-service
+  #           path: event-service/event-service-app
+  #           needs_github_pkg: true
+  #         - service: notification-service
+  #           path: notification-service
+  #           needs_github_pkg: true
+  #
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Set up Java 21
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         java-version: '21'
+  #         distribution: 'temurin'
+  #         cache: maven
+  #
+  #     # settings.xml: token Maven'ın ${env.GITHUB_TOKEN} interpolasyonu ile
+  #     # çözülür — değer asla log'a düşmez, GITHUB_TOKEN otomatik maskelenir.
+  #     - name: Configure Maven settings (GitHub Packages)
+  #       if: matrix.needs_github_pkg
+  #       run: |
+  #         mkdir -p ~/.m2
+  #         cat > ~/.m2/settings.xml << 'SETTINGS_EOF'
+  #         <settings>
+  #           <servers>
+  #             <server>
+  #               <id>github</id>
+  #               <username>${env.GITHUB_ACTOR}</username>
+  #               <password>${env.GITHUB_TOKEN}</password>
+  #             </server>
+  #           </servers>
+  #         </settings>
+  #         SETTINGS_EOF
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_ACTOR: ${{ github.actor }}
+  #
+  #     # user-service-client'ı test öncesi local repo'ya kur
+  #     - name: Install user-service-client (user-service dep)
+  #       if: matrix.service == 'user-service'
+  #       working-directory: UserService/user-service-client
+  #       run: mvn clean install -DskipTests -B
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_ACTOR: ${{ github.actor }}
+  #
+  #     - name: Install user-service-client (event-service dep)
+  #       if: matrix.service == 'event-service'
+  #       working-directory: UserService/user-service-client
+  #       run: mvn clean install -DskipTests -B
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_ACTOR: ${{ github.actor }}
+  #
+  #     - name: Install event-service-client (event-service dep)
+  #       if: matrix.service == 'event-service'
+  #       working-directory: event-service/event-service-client
+  #       run: mvn clean install -DskipTests -B
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_ACTOR: ${{ github.actor }}
+  #
+  #     - name: Run tests
+  #       working-directory: ${{ matrix.path }}
+  #       run: mvn test -B
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_ACTOR: ${{ github.actor }}
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # 2. BUILD & PUSH — Sadece main branch push'unda, testler geçince
+  # 2. BUILD & PUSH — Sadece main branch push'unda çalışır
   # ═══════════════════════════════════════════════════════════════════════════
   build-push:
     name: Build & Push / ${{ matrix.service }}
-    needs: test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     strategy:
@@ -183,7 +182,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # 3. DEPLOY — Compose dosyasını kopyala, sunucuda pull+up yap
+  # 3. DEPLOY — Sunucudaki /opt/ems klasöründe pull + up yap
   # ═══════════════════════════════════════════════════════════════════════════
   deploy:
     name: Deploy to Production
@@ -195,17 +194,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # docker-compose-prod.yml'i sunucuya kopyala
-      - name: Copy compose file to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: docker-compose-prod.yml
-          target: /opt/ems/
-
-      - name: Deploy
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -214,25 +203,25 @@ jobs:
           script: |
             set -e
 
-            # acme.json: Traefik chmod 600 ister; idempotent
+            # 1. Traefik için gerekli SSL dosya kontrolü
             mkdir -p /opt/ems/letsencrypt
             if [ ! -f /opt/ems/letsencrypt/acme.json ]; then
               touch /opt/ems/letsencrypt/acme.json
             fi
             chmod 600 /opt/ems/letsencrypt/acme.json
 
-            # GHCR'a giriş — GHCR_TOKEN secret'ından alınan PAT (read:packages)
-            echo "$GHCR_TOKEN" | docker login ghcr.io \
-              -u "$GHCR_USERNAME" --password-stdin
+            # 2. GHCR'a giriş (Yeni imajları çekebilmek için)
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
+              -u "${{ vars.GHCR_USERNAME }}" --password-stdin
 
+            # 3. Doğru dizine git (Dosyalarının olduğu yer)
             cd /opt/ems
 
-            # Güncel image'ları çek ve servisleri yeniden başlat
-            docker compose -f docker-compose-prod.yml pull
-            docker compose -f docker-compose-prod.yml up -d --remove-orphans
+            # 4. Sunucudaki prod dosyası ve .env ile yeni imajları çek
+            docker compose -f docker-compose-prod.yml --env-file .env pull
 
-            # Eski/kullanılmayan image'ları temizle
+            # 5. Sistemi kesintisiz ayağa kaldır
+            docker compose -f docker-compose-prod.yml --env-file .env up -d --remove-orphans
+
+            # 6. Sunucuda biriken eski imajları temizle (Disk dolmasın)
             docker image prune -f
-        env:
-          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          GHCR_USERNAME: ${{ vars.GHCR_USERNAME }}

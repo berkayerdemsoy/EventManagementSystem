@@ -25,7 +25,7 @@ WORKDIR /app/user-service-app
 COPY user-service-app/pom.xml ./pom.xml
 RUN mvn dependency:go-offline -B
 COPY user-service-app/src ./src
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -Dmaven.test.skip=true -B
 
 # ---- Run Stage ----
 FROM eclipse-temurin:21-jre

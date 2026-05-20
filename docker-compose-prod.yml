@@ -35,7 +35,8 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
       - "--log.level=WARN"
@@ -50,6 +51,20 @@ services:
       - socket-proxy-network
     depends_on:
       - socket-proxy
+    restart: unless-stopped
+
+  # ─── Frontend (Angular — nginx) ──────────────────────────────────────────────
+  frontend:
+    image: ghcr.io/${GHCR_USERNAME}/ems-ng:latest
+    container_name: ems-frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`akissy.com`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    networks:
+      - microservices-network
     restart: unless-stopped
 
   # ─── Eureka: Servis Keşfi (sadece iç ağ) ─────────────────────────────────────
@@ -191,6 +206,10 @@ services:
       ADMIN_USERNAMES: ${ADMIN_USERNAMES}
       ADMIN_PASSWORDS: ${ADMIN_PASSWORDS}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      SPRING_PROFILES_ACTIVE: prod
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}   # user-service için
+      FRONTEND_URL: ${FRONTEND_URL:-https://akissy.com} # e-posta linkleri için
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
