@@ -10,107 +10,15 @@ on:
 # ─── Ortam değişkenleri ────────────────────────────────────────────────────────
 env:
   REGISTRY: ghcr.io
-  # GHCR_USERNAME → GitHub repo variable olarak tanımla (Settings > Variables > Actions)
-  # Secrets'a değil Variables'a koy; kullanıcı adı gizli değil.
 
 # ─── İzinler ──────────────────────────────────────────────────────────────────
 permissions:
   contents: read
-  packages: write   # GHCR'a push için
+  packages: write
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════════════
-  # 1. TEST — Şimdilik devre dışı (TODO: testler tamamlanınca tekrar aç)
-  # ═══════════════════════════════════════════════════════════════════════════
-  # test:
-  #   name: Test / ${{ matrix.service }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - service: eureka-server
-  #           path: EurekaServer
-  #           needs_github_pkg: false
-  #         - service: api-gateway
-  #           path: api-gateway
-  #           needs_github_pkg: false
-  #         - service: user-service
-  #           path: UserService/user-service-app
-  #           needs_github_pkg: true
-  #         - service: event-service
-  #           path: event-service/event-service-app
-  #           needs_github_pkg: true
-  #         - service: notification-service
-  #           path: notification-service
-  #           needs_github_pkg: true
-  #
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Set up Java 21
-  #       uses: actions/setup-java@v4
-  #       with:
-  #         java-version: '21'
-  #         distribution: 'temurin'
-  #         cache: maven
-  #
-  #     # settings.xml: token Maven'ın ${env.GITHUB_TOKEN} interpolasyonu ile
-  #     # çözülür — değer asla log'a düşmez, GITHUB_TOKEN otomatik maskelenir.
-  #     - name: Configure Maven settings (GitHub Packages)
-  #       if: matrix.needs_github_pkg
-  #       run: |
-  #         mkdir -p ~/.m2
-  #         cat > ~/.m2/settings.xml << 'SETTINGS_EOF'
-  #         <settings>
-  #           <servers>
-  #             <server>
-  #               <id>github</id>
-  #               <username>${env.GITHUB_ACTOR}</username>
-  #               <password>${env.GITHUB_TOKEN}</password>
-  #             </server>
-  #           </servers>
-  #         </settings>
-  #         SETTINGS_EOF
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         GITHUB_ACTOR: ${{ github.actor }}
-  #
-  #     # user-service-client'ı test öncesi local repo'ya kur
-  #     - name: Install user-service-client (user-service dep)
-  #       if: matrix.service == 'user-service'
-  #       working-directory: UserService/user-service-client
-  #       run: mvn clean install -DskipTests -B
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         GITHUB_ACTOR: ${{ github.actor }}
-  #
-  #     - name: Install user-service-client (event-service dep)
-  #       if: matrix.service == 'event-service'
-  #       working-directory: UserService/user-service-client
-  #       run: mvn clean install -DskipTests -B
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         GITHUB_ACTOR: ${{ github.actor }}
-  #
-  #     - name: Install event-service-client (event-service dep)
-  #       if: matrix.service == 'event-service'
-  #       working-directory: event-service/event-service-client
-  #       run: mvn clean install -DskipTests -B
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         GITHUB_ACTOR: ${{ github.actor }}
-  #
-  #     - name: Run tests
-  #       working-directory: ${{ matrix.path }}
-  #       run: mvn test -B
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         GITHUB_ACTOR: ${{ github.actor }}
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # 2. BUILD & PUSH — Sadece main branch push'unda çalışır
+  # 1. BUILD & PUSH — Sadece main branch push'unda çalışır
   # ═══════════════════════════════════════════════════════════════════════════
   build-push:
     name: Build & Push / ${{ matrix.service }}
@@ -155,7 +63,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── BuildKit secret mount: token image history'ye YAZILMAZ ──────────────
+      # ── BuildKit secret mount ──────────────────────────────────────────────
       - name: Build & push (with GitHub Packages secret)
         if: matrix.needs_secret
         uses: docker/build-push-action@v6
@@ -182,7 +90,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ═══════════════════════════════════════════════════════════════════════════
-  # 3. DEPLOY — Sunucudaki /opt/ems klasöründe pull + up yap
+  # 2. DEPLOY — Sunucudaki /opt/ems klasöründe pull + up yap
   # ═══════════════════════════════════════════════════════════════════════════
   deploy:
     name: Deploy to Production
