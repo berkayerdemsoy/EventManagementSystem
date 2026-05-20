@@ -15,6 +15,7 @@ env:
 permissions:
   contents: read
   packages: write
+  id-token: write
 
 jobs:
   # ═══════════════════════════════════════════════════════════════════════════
@@ -61,7 +62,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }} // yetki hatasindan dolayi GHCR_TOKEN olarak degistirildi GITHUB_TOKEN yerine GHCR_TOKEN kullanildi.
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       # ── BuildKit secret mount ──────────────────────────────────────────────
       - name: Build & push (with GitHub Packages secret)
@@ -119,7 +120,7 @@ jobs:
             chmod 600 /opt/ems/letsencrypt/acme.json
 
             # 2. GHCR'a giriş (Yeni imajları çekebilmek için)
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \ // yetki hatasindan dolayi GHCR_TOKEN olarak degistirildi GITHUB_TOKEN yerine GHCR_TOKEN kullanildi.
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \ 
               -u "${{ vars.GHCR_USERNAME }}" --password-stdin 
 
             # 3. Doğru dizine git (Dosyalarının olduğu yer)
