@@ -62,7 +62,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHRC_TOKEN }} // github token'ı GHCR_TOKEN olarak adlandırdık, bu token'ın GHCR'a push yetkisi olduğundan emin olun.
 
       # ── BuildKit secret mount ──────────────────────────────────────────────
       - name: Build & push (with GitHub Packages secret)
