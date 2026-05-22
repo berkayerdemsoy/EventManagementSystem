@@ -132,10 +132,10 @@ jobs:
             cd /opt/ems
 
             # 4. Sunucudaki prod dosyası ve .env ile yeni imajları çek
-            docker compose -f docker-compose-prod.yml --env-file .env pull
+            docker-compose -f docker-compose-prod.yml --env-file .env pull
 
             # 5. Sistemi kesintisiz ayağa kaldır
-            docker compose -f docker-compose-prod.yml --env-file .env up -d --remove-orphans
+            docker-compose -f docker-compose-prod.yml --env-file .env up -d --remove-orphans
 
             # 6. Sunucuda biriken eski imajları temizle (Disk dolmasın)
             docker image prune -f
