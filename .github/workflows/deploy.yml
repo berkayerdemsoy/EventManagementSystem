@@ -75,7 +75,7 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ vars.GHCR_USERNAME }}/${{ matrix.service }}:latest
           secrets: |
-            github_token=${{ secrets.GITHUB_TOKEN }}
+            github_token=${{ secrets.GHCR_TOKEN }}
             github_actor=${{ github.actor }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
