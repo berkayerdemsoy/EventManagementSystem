@@ -112,7 +112,7 @@ jobs:
           GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.actor }}
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          username: emsadmin
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
