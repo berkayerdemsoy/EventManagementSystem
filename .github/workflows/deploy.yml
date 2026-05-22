@@ -105,6 +105,11 @@ jobs:
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          # Token'ı env olarak alıyoruz
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          # Eğer vars boş kalırsa diye fallback olarak github.actor ekliyoruz
+          GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.actor }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
@@ -120,8 +125,7 @@ jobs:
             chmod 600 /opt/ems/letsencrypt/acme.json
 
             # 2. GHCR'a giriş (Yeni imajları çekebilmek için)
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \ 
-              -u "${{ vars.GHCR_USERNAME }}" --password-stdin 
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
             # 3. Doğru dizine git (Dosyalarının olduğu yer)
             cd /opt/ems
