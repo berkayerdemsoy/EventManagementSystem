@@ -114,6 +114,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: emsadmin
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GHCR_TOKEN,GHCR_USERNAME
           script: |
             set -e
 
