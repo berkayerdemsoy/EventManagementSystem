@@ -27,22 +27,29 @@ jobs:
           - service: eurekaserver
             dockerfile: EurekaServer/Dockerfile
             context: ./EurekaServer
+            watch_paths: "['EurekaServer/**']"
             needs_secret: false
           - service: api-gateway
             dockerfile: api-gateway/Dockerfile
             context: ./api-gateway
+            watch_paths: "['api-gateway/**']"
             needs_secret: false
           - service: user-service
             dockerfile: UserService/Dockerfile
             context: ./UserService
+            # UserService klasöründe hem app hem client olduğu için kökü dinlemesi yeterli
+            watch_paths: "['UserService/**']"
             needs_secret: true
           - service: event-service
             dockerfile: event-service/Dockerfile
-            context: ./event-service   # DÜZELTİLDİ: '.' yerine spesifik klasör
+            context: .
+            # İŞTE BURASI: Hem kendi klasörünü hem de UserService içindeki client'ı dinliyor!
+            watch_paths: "['event-service/**', 'UserService/user-service-client/**']"
             needs_secret: true
           - service: notification-service
             dockerfile: notification-service/Dockerfile
             context: ./notification-service
+            watch_paths: "['notification-service/**']"
             needs_secret: true
 
     steps:
@@ -57,8 +64,7 @@ jobs:
         id: filter
         with:
           filters: |
-            changed:
-              - '${{ matrix.context }}/**'
+            changed: ${{ matrix.watch_paths }}
 
       # ── 2. Build Adımları (Sadece değişiklik varsa çalışır) ────────────────
       - name: Set up Docker Buildx
