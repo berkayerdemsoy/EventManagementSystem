@@ -6,6 +6,7 @@ spring:
     contexts: prod
     # Prod admin kullanıcısı için Liquibase parametreleri.
     # ADMIN_USERNAME ve ADMIN_PASSWORD_HASH ortam değişkenleri gereklidir.
+    # Bu parametreleri .env dosyasindan cekiyoruz.
     parameters:
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
