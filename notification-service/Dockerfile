@@ -11,7 +11,10 @@ RUN --mount=type=secret,id=github_token \
     > /root/.m2/settings.xml
 
 COPY pom.xml ./
-RUN mvn dependency:go-offline -B
+#RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B -Dhttp.keepAlive=false -Dmaven.wagon.http.retryHandler.count=3 || \
+               (echo "Ağ hatası alındı, 5 saniye bekleniyor..." && sleep 5 && mvn dependency:go-offline -B) || \
+               (echo "İkinci deneme başarısız, 10 saniye bekleniyor..." && sleep 10 && mvn dependency:go-offline -B)
 COPY src ./src
 RUN mvn clean package -Dmaven.test.skip=true -B
 

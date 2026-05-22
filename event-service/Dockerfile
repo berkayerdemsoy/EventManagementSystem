@@ -14,21 +14,30 @@ RUN --mount=type=secret,id=github_token \
 # 1) user-service-client build & install (event-service-app depends on it)
 COPY UserService/user-service-client/pom.xml ./user-service-client/pom.xml
 WORKDIR /app/user-service-client
-RUN mvn dependency:go-offline -B
+#RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B -Dhttp.keepAlive=false -Dmaven.wagon.http.retryHandler.count=3 || \
+               (echo "Ağ hatası alındı, 5 saniye bekleniyor..." && sleep 5 && mvn dependency:go-offline -B) || \
+               (echo "İkinci deneme başarısız, 10 saniye bekleniyor..." && sleep 10 && mvn dependency:go-offline -B)
 COPY UserService/user-service-client/src ./src
 RUN mvn clean install -DskipTests -B
 
 # 2) event-service-client build & install
 WORKDIR /app/event-service-client
 COPY event-service/event-service-client/pom.xml ./pom.xml
-RUN mvn dependency:go-offline -B
+#RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B -Dhttp.keepAlive=false -Dmaven.wagon.http.retryHandler.count=3 || \
+               (echo "Ağ hatası alındı, 5 saniye bekleniyor..." && sleep 5 && mvn dependency:go-offline -B) || \
+               (echo "İkinci deneme başarısız, 10 saniye bekleniyor..." && sleep 10 && mvn dependency:go-offline -B)
 COPY event-service/event-service-client/src ./src
 RUN mvn clean install -DskipTests -B
 
 # 3) event-service-app build
 WORKDIR /app/event-service-app
 COPY event-service/event-service-app/pom.xml ./pom.xml
-RUN mvn dependency:go-offline -B
+#RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B -Dhttp.keepAlive=false -Dmaven.wagon.http.retryHandler.count=3 || \
+               (echo "Ağ hatası alındı, 5 saniye bekleniyor..." && sleep 5 && mvn dependency:go-offline -B) || \
+               (echo "İkinci deneme başarısız, 10 saniye bekleniyor..." && sleep 10 && mvn dependency:go-offline -B)
 COPY event-service/event-service-app/src ./src
 RUN mvn clean package -Dmaven.test.skip=true -B
 

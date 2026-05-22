@@ -16,14 +16,20 @@ RUN --mount=type=secret,id=github_token \
 # 1) user-service-client build & install
 COPY user-service-client/pom.xml ./user-service-client/pom.xml
 WORKDIR /app/user-service-client
-RUN mvn dependency:go-offline -B
+#RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B -Dhttp.keepAlive=false -Dmaven.wagon.http.retryHandler.count=3 || \
+               (echo "Ağ hatası alındı, 5 saniye bekleniyor..." && sleep 5 && mvn dependency:go-offline -B) || \
+               (echo "İkinci deneme başarısız, 10 saniye bekleniyor..." && sleep 10 && mvn dependency:go-offline -B)
 COPY user-service-client/src ./src
 RUN mvn clean install -DskipTests -B
 
 # 2) user-service-app build
 WORKDIR /app/user-service-app
 COPY user-service-app/pom.xml ./pom.xml
-RUN mvn dependency:go-offline -B
+#RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline -B -Dhttp.keepAlive=false -Dmaven.wagon.http.retryHandler.count=3 || \
+               (echo "Ağ hatası alındı, 5 saniye bekleniyor..." && sleep 5 && mvn dependency:go-offline -B) || \
+               (echo "İkinci deneme başarısız, 10 saniye bekleniyor..." && sleep 10 && mvn dependency:go-offline -B)
 COPY user-service-app/src ./src
 RUN mvn clean package -Dmaven.test.skip=true -B
 
