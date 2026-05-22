@@ -13,7 +13,7 @@ public class EventServiceAppApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(EventServiceAppApplication.class, args);
-		System.out.println("EventServiceAppApplication started");
+		System.out.println("EventServiceAppApplication started successfully.");
 	}
 
 }
