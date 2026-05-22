@@ -1,26 +1,20 @@
 name: CI/CD Pipeline
 
-# ─── Tetikleyiciler ────────────────────────────────────────────────────────────
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
-# ─── Ortam değişkenleri ────────────────────────────────────────────────────────
 env:
   REGISTRY: ghcr.io
 
-# ─── İzinler ──────────────────────────────────────────────────────────────────
 permissions:
   contents: read
   packages: write
   id-token: write
 
 jobs:
-  # ═══════════════════════════════════════════════════════════════════════════
-  # 1. BUILD & PUSH — Sadece main branch push'unda çalışır
-  # ═══════════════════════════════════════════════════════════════════════════
   build-push:
     name: Build & Push / ${{ matrix.service }}
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -44,7 +38,7 @@ jobs:
             needs_secret: true
           - service: event-service
             dockerfile: event-service/Dockerfile
-            context: .
+            context: ./event-service   # DÜZELTİLDİ: '.' yerine spesifik klasör
             needs_secret: true
           - service: notification-service
             dockerfile: notification-service/Dockerfile
@@ -55,19 +49,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ── 1. Değişiklik Kontrolü ──────────────────────────────────────────────
+      # Sadece matrix.context (ilgili servisin klasörü) içinde değişiklik varsa
+      # "changed" çıktısını true yapar.
+      - name: Check for changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            changed:
+              - '${{ matrix.context }}/**'
+
+      # ── 2. Build Adımları (Sadece değişiklik varsa çalışır) ────────────────
       - name: Set up Docker Buildx
+        if: steps.filter.outputs.changed == 'true'
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to GHCR
+        if: steps.filter.outputs.changed == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      # ── BuildKit secret mount ──────────────────────────────────────────────
       - name: Build & push (with GitHub Packages secret)
-        if: matrix.needs_secret
+        if: steps.filter.outputs.changed == 'true' && matrix.needs_secret
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
@@ -81,7 +88,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build & push (no secrets needed)
-        if: "!matrix.needs_secret"
+        if: steps.filter.outputs.changed == 'true' && !matrix.needs_secret
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
@@ -91,9 +98,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # 2. DEPLOY — Sunucudaki /opt/ems klasöründe pull + up yap
-  # ═══════════════════════════════════════════════════════════════════════════
   deploy:
     name: Deploy to Production
     needs: build-push
@@ -107,9 +111,7 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          # Token'ı env olarak alıyoruz
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          # Eğer vars boş kalırsa diye fallback olarak github.actor ekliyoruz
           GHCR_USERNAME: ${{ vars.GHCR_USERNAME || github.actor }}
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -118,25 +120,13 @@ jobs:
           envs: GHCR_TOKEN,GHCR_USERNAME
           script: |
             set -e
-
-            # 1. Traefik için gerekli SSL dosya kontrolü
             mkdir -p /opt/ems/letsencrypt
             if [ ! -f /opt/ems/letsencrypt/acme.json ]; then
               touch /opt/ems/letsencrypt/acme.json
             fi
             chmod 600 /opt/ems/letsencrypt/acme.json
-
-            # 2. GHCR'a giriş (Yeni imajları çekebilmek için)
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-
-            # 3. Doğru dizine git (Dosyalarının olduğu yer)
             cd /opt/ems
-
-            # 4. Sunucudaki prod dosyası ve .env ile yeni imajları çek
             docker-compose -f docker-compose-prod.yml --env-file .env pull
-
-            # 5. Sistemi kesintisiz ayağa kaldır
             docker-compose -f docker-compose-prod.yml --env-file .env up -d --remove-orphans
-
-            # 6. Sunucuda biriken eski imajları temizle (Disk dolmasın)
             docker image prune -f
