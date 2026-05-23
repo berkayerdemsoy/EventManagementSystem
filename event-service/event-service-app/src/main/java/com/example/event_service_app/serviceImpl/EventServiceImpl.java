@@ -11,6 +11,7 @@ import com.example.event_service_app.kafka.NotificationEventProducer;
 import com.example.event_service_app.mapper.EventMapper;
 import com.example.event_service_app.repository.CategoryRepository;
 import com.example.event_service_app.repository.EventRepository;
+import com.example.event_service_app.repository.ParticipationRepository;
 import com.example.event_service_app.service.EventService;
 import com.example.event_service_client.dto.EventCreateDto;
 import com.example.event_service_client.dto.EventResponseDto;
@@ -36,6 +37,7 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
+    private final ParticipationRepository participationRepository;
     private final EventMapper eventMapper;
     /**
      * gRPC BlockingStub — HTTP UserServiceClient'ın yerini aldı.
@@ -134,7 +136,7 @@ public class EventServiceImpl implements EventService {
         if (!"ADMIN".equals(currentRole) && !event.getOwnerId().equals(currentUserId)) {
             throw new ForbiddenException("You are not authorized to delete this event");
         }
-
+        participationRepository.deleteByEventId(event.getId());
         eventRepository.delete(event);
     }
 

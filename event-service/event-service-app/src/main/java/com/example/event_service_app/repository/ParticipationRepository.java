@@ -2,6 +2,7 @@ package com.example.event_service_app.repository;
 
 import com.example.event_service_app.entity.Participation;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,6 +13,9 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
 
     boolean existsByEventIdAndParticipantId(Long eventId, Long participantId);
 
+    @Modifying
+    @Query("DELETE FROM Participation p WHERE p.event.id = :eventId")
+    void deleteByEventId(@Param("eventId") Long eventId);
     List<Participation> findByEventId(Long eventId);
     List<Participation> findByParticipantId(Long participantId);
 
