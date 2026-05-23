@@ -177,6 +177,7 @@ public class EventServiceImpl implements EventService {
             throw switch (e.getStatus().getCode()) {
                 case NOT_FOUND       -> new NotFoundException("User not found with id: " + userId);
                 case PERMISSION_DENIED -> new ForbiddenException(e.getStatus().getDescription());
+                case UNAUTHENTICATED   -> new com.example.ems_common.exceptions.InvalidCredentialsException(e.getStatus().getDescription());
                 default              -> new RuntimeException("gRPC error: " + e.getStatus().getDescription());
             };
         }
@@ -196,6 +197,7 @@ public class EventServiceImpl implements EventService {
             throw switch (e.getStatus().getCode()) {
                 case NOT_FOUND       -> new NotFoundException("User not found with id: " + userId);
                 case PERMISSION_DENIED -> new ForbiddenException(e.getStatus().getDescription());
+                case UNAUTHENTICATED   -> new com.example.ems_common.exceptions.InvalidCredentialsException(e.getStatus().getDescription());
                 default              -> new RuntimeException("gRPC error: " + e.getStatus().getDescription());
             };
         }
