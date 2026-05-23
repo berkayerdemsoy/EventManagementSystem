@@ -11,6 +11,7 @@ import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.grpc.server.service.GrpcService;
+import org.springframework.security.core.AuthenticationException;
 
 /**
  * gRPC Server — UserGrpcService implementasyonu.
@@ -104,6 +105,14 @@ public class UserGrpcServiceImpl extends UserGrpcServiceGrpc.UserGrpcServiceImpl
             responseObserver.onError(
                     Status.PERMISSION_DENIED
                             .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            // Bu blok, "An Authentication object was not found..." hatasını yakalar
+            log.warn("gRPC BeOwner — Kimlik doğrulama hatası (Eski/Geçersiz Token): {}", e.getMessage());
+            responseObserver.onError(
+                    Status.UNAUTHENTICATED // INTERNAL yerine UNAUTHENTICATED dönüyoruz
+                            .withDescription("Oturumunuz geçersiz veya süresi dolmuş. Lütfen tekrar giriş yapın.")
                             .asRuntimeException()
             );
         } catch (Exception e) {
