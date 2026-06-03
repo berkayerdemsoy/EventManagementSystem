@@ -70,9 +70,9 @@ public class UserController {
     }
 
     @GetMapping("/confirm-email")
-    public ResponseEntity<String> confirmEmail(@RequestParam String token){
-        userService.confirmEmail(token);
-        return ResponseEntity.ok("Email verified successfully");
+    public ResponseEntity<AuthResponseDto> confirmEmail(@RequestParam String token){
+        AuthResponseDto response = userService.confirmEmail(token);
+        return ResponseEntity.ok(response);
     }
 
     /**

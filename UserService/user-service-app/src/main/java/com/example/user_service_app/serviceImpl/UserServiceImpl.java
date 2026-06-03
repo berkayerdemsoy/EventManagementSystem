@@ -163,14 +163,11 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void confirmEmail(String token) {        String hashedToken = HashUtil.hashToken(token);
+    public AuthResponseDto confirmEmail(String token) {
+        String hashedToken = HashUtil.hashToken(token);
         VerificationToken verificationToken = verificationTokenRepository.findByTokenHash(hashedToken)
                 .orElse(null);
 
-        // Token bulunamadıysa — ya zaten tüketildi (double-call) ya da asla geçerli değildi.
-        // Token'ın bağlı olduğu kullanıcıyı bilemeyeceğimiz için sessizce dönmek yerine
-        // "already verified" durumunu da gözetiyoruz: token yoksa ve dışarıdan erişiliyorsa
-        // güvenli şekilde NotFoundException fırlat.
         if (verificationToken == null) {
             throw new NotFoundException("Invalid or already used verification token");
         }
@@ -183,16 +180,14 @@ public class UserServiceImpl implements UserService {
         User user = verificationToken.getUser();
 
         if (!user.isVerified()) {
-            // İLK ÇAĞRI: kullanıcıyı doğrula ama token'ı silme.
-            // Token DB'de kalır; React StrictMode gibi double-call senaryolarında
-            // 2. çağrı token'ı tekrar bulabilir ve aşağıdaki else dalına düşer.
             user.setVerified(true);
             userRepository.save(user);
         } else {
-            // İKİNCİ (veya tekrar eden) ÇAĞRI: kullanıcı zaten doğrulanmış,
-            // artık token'a gerek yok — temizle.
             verificationTokenRepository.delete(verificationToken);
         }
+
+        String jwtToken = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
+        return new AuthResponseDto(jwtToken, userMapper.toResponseDto(user));
     }
 
     @Transactional

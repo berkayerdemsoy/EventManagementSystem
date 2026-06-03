@@ -22,7 +22,7 @@ public interface UserService {
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal")
     void verifyUserEmail(Long id);
 
-    void confirmEmail(String token);
+    AuthResponseDto confirmEmail(String token);
     AuthResponseDto login(UserLoginDto dto);
 
     /**
