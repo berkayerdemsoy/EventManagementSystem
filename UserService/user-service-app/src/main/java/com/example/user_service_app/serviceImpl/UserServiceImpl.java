@@ -100,13 +100,15 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public void beOwner(Long id) {
+    public AuthResponseDto beOwner(Long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         if (!user.isVerified()) {
             throw new ForbiddenException("User is not verified");
         }
         user.setRole(Roles.EVENT_OWNER);
         userRepository.save(user);
+        String newToken = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
+        return new AuthResponseDto(newToken, userMapper.toResponseDto(user));
     }
 
     @Override

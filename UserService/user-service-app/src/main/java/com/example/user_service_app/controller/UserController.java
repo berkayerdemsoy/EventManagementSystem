@@ -52,9 +52,9 @@ public class UserController {
     }
 
     @PostMapping("/owner/{id}")
-    public ResponseEntity<Void> beOwner(@PathVariable Long id){
-        userService.beOwner(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<AuthResponseDto> beOwner(@PathVariable Long id){
+        AuthResponseDto response = userService.beOwner(id);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")

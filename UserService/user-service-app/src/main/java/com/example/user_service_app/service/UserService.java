@@ -17,7 +17,7 @@ public interface UserService {
     void deleteUserById(Long id);
 
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal")
-    void beOwner(Long id);
+    AuthResponseDto beOwner(Long id);
 
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal")
     void verifyUserEmail(Long id);
