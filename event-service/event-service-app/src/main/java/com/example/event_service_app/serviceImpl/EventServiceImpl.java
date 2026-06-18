@@ -7,10 +7,11 @@ import com.example.ems_common.exceptions.NotFoundException;
 import com.example.ems_common.security.SecurityUtils;
 import com.example.event_service_app.entity.Category;
 import com.example.event_service_app.entity.Event;
-import com.example.event_service_app.kafka.NotificationEventProducer;
+import com.example.event_service_app.entity.OutboxEvent;
 import com.example.event_service_app.mapper.EventMapper;
 import com.example.event_service_app.repository.CategoryRepository;
 import com.example.event_service_app.repository.EventRepository;
+import com.example.event_service_app.repository.OutboxEventRepository;
 import com.example.event_service_app.repository.ParticipationRepository;
 import com.example.event_service_app.service.EventService;
 import com.example.event_service_client.dto.EventCreateDto;
@@ -20,6 +21,8 @@ import com.example.user_service_client.grpc.BeOwnerRequest;
 import com.example.user_service_client.grpc.GetUserByIdRequest;
 import com.example.user_service_client.grpc.UserGrpcResponse;
 import com.example.user_service_client.grpc.UserGrpcServiceGrpc;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -46,7 +50,8 @@ public class EventServiceImpl implements EventService {
      * FutureStub/async kullanılsaydı farklı thread'e geçişte token kaybolabilirdi.
      */
     private final UserGrpcServiceGrpc.UserGrpcServiceBlockingStub userGrpcStub;
-    private final NotificationEventProducer notificationEventProducer;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     // ─── Event CRUD ──────────────────────────────────────────────────────────
 
@@ -79,15 +84,18 @@ public class EventServiceImpl implements EventService {
 
         Event savedEvent = eventRepository.save(event);
 
-        notificationEventProducer.send(NotificationEvent.builder()
+        NotificationEvent notificationEvent = NotificationEvent.builder()
                 .eventType(NotificationEventType.EVENT_OWNER_WELCOME)
                 .recipientEmail(owner.getEmail())
-                .payload(java.util.Map.of(
+                .payload(Map.of(
                         "ownerName", !owner.getFirstName().isBlank() ? owner.getFirstName() : owner.getUsername(),
                         "eventTitle", savedEvent.getTitle(),
                         "eventId", String.valueOf(savedEvent.getId())
                 ))
-                .build());
+                .build();
+
+        persistOutboxEvent(savedEvent.getId().toString(), "Event",
+                NotificationEventType.EVENT_OWNER_WELCOME.name(), notificationEvent);
 
         return eventMapper.toResponseDto(savedEvent);
     }
@@ -201,5 +209,27 @@ public class EventServiceImpl implements EventService {
                 default              -> new RuntimeException("gRPC error: " + e.getStatus().getDescription());
             };
         }
+    }
+
+    private void persistOutboxEvent(String aggregateId, String aggregateType,
+                                    String eventType, NotificationEvent notificationEvent) {
+        String payloadJson;
+        try {
+            payloadJson = objectMapper.writeValueAsString(notificationEvent);
+        } catch (JsonProcessingException e) {
+            log.error("[Outbox] Event JSON'a çevrilemedi. aggregateType={}, aggregateId={}",
+                    aggregateType, aggregateId, e);
+            throw new RuntimeException("Failed to serialize outbox event", e);
+        }
+
+        OutboxEvent outboxEvent = new OutboxEvent();
+        outboxEvent.setAggregateType(aggregateType);
+        outboxEvent.setAggregateId(aggregateId);
+        outboxEvent.setEventType(eventType);
+        outboxEvent.setPayload(payloadJson);
+        outboxEvent.setCreatedAt(LocalDateTime.now());
+        outboxEvent.setProcessed(false);
+
+        outboxEventRepository.save(outboxEvent);
     }
 }

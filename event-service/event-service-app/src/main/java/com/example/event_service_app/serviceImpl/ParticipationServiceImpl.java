@@ -7,27 +7,34 @@ import com.example.ems_common.exceptions.CannotJoinOwnEventException;
 import com.example.ems_common.exceptions.NotFoundException;
 import com.example.ems_common.security.SecurityUtils;
 import com.example.event_service_app.entity.Event;
+import com.example.event_service_app.entity.OutboxEvent;
 import com.example.event_service_app.entity.Participation;
-import com.example.event_service_app.kafka.NotificationEventProducer;
 import com.example.event_service_app.repository.EventRepository;
+import com.example.event_service_app.repository.OutboxEventRepository;
 import com.example.event_service_app.repository.ParticipationRepository;
 import com.example.event_service_app.service.ParticipationService;
 import com.example.event_service_client.dto.ParticipationCreateDto;
 import com.example.event_service_client.dto.ParticipationResponseDto;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ParticipationServiceImpl implements ParticipationService {
 
     private final ParticipationRepository participationRepository;
     private final EventRepository eventRepository;
-    private final NotificationEventProducer notificationEventProducer;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -56,8 +63,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 
         Participation saved = participationRepository.save(participation);
 
-        // Kafka: PARTICIPANT_REGISTERED
-        notificationEventProducer.send(NotificationEvent.builder()
+        NotificationEvent notificationEvent = NotificationEvent.builder()
                 .eventType(NotificationEventType.PARTICIPANT_REGISTERED)
                 .recipientEmail(dto.getParticipantEmail())
                 .payload(Map.of(
@@ -66,7 +72,26 @@ public class ParticipationServiceImpl implements ParticipationService {
                         "eventCity", event.getCity(),
                         "eventId", String.valueOf(event.getId())
                 ))
-                .build());
+                .build();
+
+        String payloadJson;
+        try {
+            payloadJson = objectMapper.writeValueAsString(notificationEvent);
+        } catch (JsonProcessingException e) {
+            log.error("[Outbox] Participant registered event JSON'a çevrilemedi. eventId={}, participantId={}",
+                    event.getId(), currentUserId, e);
+            throw new RuntimeException("Failed to serialize participant registered event", e);
+        }
+
+        OutboxEvent outboxEvent = new OutboxEvent();
+        outboxEvent.setAggregateType("Participation");
+        outboxEvent.setAggregateId(String.valueOf(saved.getId()));
+        outboxEvent.setEventType(NotificationEventType.PARTICIPANT_REGISTERED.name());
+        outboxEvent.setPayload(payloadJson);
+        outboxEvent.setCreatedAt(LocalDateTime.now());
+        outboxEvent.setProcessed(false);
+
+        outboxEventRepository.save(outboxEvent);
 
         return toResponseDto(saved);
     }

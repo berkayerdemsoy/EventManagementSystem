@@ -13,25 +13,31 @@ import com.example.user_service_app.configs.emailConfigs.HashUtil;
 import com.example.user_service_app.configs.frontendConfigs.FrontendProperties;
 import com.example.user_service_app.configs.emailConfigs.VerificationToken;
 import com.example.user_service_app.configs.emailConfigs.VerificationTokenRepository;
-import com.example.user_service_app.kafka.NotificationEventProducer;
+import com.example.user_service_app.entity.OutboxEvent;
 import com.example.ems_common.security.JwtUtil;
 import com.example.user_service_app.entity.User;
 import com.example.user_service_app.entity.UserProfile;
 import com.example.user_service_app.mapper.UserMapper;
+import com.example.user_service_app.repository.OutboxEventRepository;
 import com.example.user_service_app.repository.UserRepository;
 import com.example.user_service_app.service.UserService;
 import com.example.user_service_client.dto.*;
 import com.example.user_service_client.enums.Roles;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -43,7 +49,8 @@ public class UserServiceImpl implements UserService {
     private final AdminProperties adminProperties;
     private final FrontendProperties frontendProperties;
     private final VerificationTokenRepository verificationTokenRepository;
-    private final NotificationEventProducer notificationEventProducer;
+    private final OutboxEventRepository outboxEventRepository;
+    private final ObjectMapper objectMapper;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 
@@ -154,11 +161,29 @@ public class UserServiceImpl implements UserService {
 
         String verificationLink = frontendProperties.getUrl() + "/verify-email?token=" + plainToken;
 
-        notificationEventProducer.send(NotificationEvent.builder()
+        NotificationEvent notificationEvent = NotificationEvent.builder()
                 .eventType(NotificationEventType.EMAIL_VERIFICATION)
                 .recipientEmail(email)
-                .payload(java.util.Map.of("verificationLink", verificationLink))
-                .build());
+                .payload(Map.of("verificationLink", verificationLink))
+                .build();
+
+        String payloadJson;
+        try {
+            payloadJson = objectMapper.writeValueAsString(notificationEvent);
+        } catch (JsonProcessingException e) {
+            log.error("[Outbox] Email verification event JSON'a çevrilemedi. userId={}", id, e);
+            throw new RuntimeException("Failed to serialize email verification event", e);
+        }
+
+        OutboxEvent outboxEvent = new OutboxEvent();
+        outboxEvent.setAggregateType("User");
+        outboxEvent.setAggregateId(String.valueOf(id));
+        outboxEvent.setEventType(NotificationEventType.EMAIL_VERIFICATION.name());
+        outboxEvent.setPayload(payloadJson);
+        outboxEvent.setCreatedAt(LocalDateTime.now());
+        outboxEvent.setProcessed(false);
+
+        outboxEventRepository.save(outboxEvent);
     }
 
     @Transactional

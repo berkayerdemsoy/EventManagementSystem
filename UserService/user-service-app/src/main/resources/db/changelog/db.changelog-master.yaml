@@ -5,4 +5,6 @@ databaseChangeLog:
       file: db/changelog/changes/v1.0.1-insert-admin.yaml
   - include:
       file: db/changelog/changes/v1.0.2-create-verification-tokens.yaml
+  - include:
+      file: db/changelog/changes/v1.0.3-create-outbox-events.yaml
 

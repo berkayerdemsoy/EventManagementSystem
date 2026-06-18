@@ -8,13 +8,16 @@ import com.example.ems_common.security.JwtUtil;
 import com.example.user_service_app.configs.adminLoginConfigs.AdminProperties;
 import com.example.user_service_app.configs.emailConfigs.VerificationToken;
 import com.example.user_service_app.configs.emailConfigs.VerificationTokenRepository;
+import com.example.user_service_app.configs.frontendConfigs.FrontendProperties;
+import com.example.user_service_app.entity.OutboxEvent;
 import com.example.user_service_app.entity.User;
 import com.example.user_service_app.entity.UserProfile;
 import com.example.user_service_app.mapper.UserMapper;
+import com.example.user_service_app.repository.OutboxEventRepository;
 import com.example.user_service_app.repository.UserRepository;
-import com.example.user_service_app.service.EmailService;
 import com.example.user_service_client.dto.*;
 import com.example.user_service_client.enums.Roles;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,8 +47,10 @@ class UserServiceImplTest {
     @Mock private UserRepository userRepository;
     @Mock private UserMapper userMapper;
     @Mock private AdminProperties adminProperties;
+    @Mock private FrontendProperties frontendProperties;
     @Mock private VerificationTokenRepository verificationTokenRepository;
-    @Mock private EmailService emailService;
+    @Mock private OutboxEventRepository outboxEventRepository;
+    @Mock private ObjectMapper objectMapper;
     @Mock private JwtUtil jwtUtil;
     @Mock private PasswordEncoder passwordEncoder;
 
@@ -435,28 +440,33 @@ class UserServiceImplTest {
     class VerifyUserEmailTests {
 
         @Test
-        @DisplayName("should send verification email successfully")
-        void shouldSendVerificationEmail() {
+        @DisplayName("should save outbox event for verification email")
+        void shouldSaveOutboxEventForVerificationEmail() throws Exception {
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(verificationTokenRepository.findByUser(testUser)).thenReturn(Optional.empty());
+            when(frontendProperties.getUrl()).thenReturn("http://localhost");
+            when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
             userService.verifyUserEmail(1L);
 
             verify(verificationTokenRepository).save(any(VerificationToken.class));
-            verify(emailService).sendVerificationEmail(eq("berkay@gmail.com"), anyString());
+            verify(outboxEventRepository).save(any(OutboxEvent.class));
         }
 
         @Test
         @DisplayName("should delete old token before creating new one")
-        void shouldDeleteOldToken() {
+        void shouldDeleteOldToken() throws Exception {
             VerificationToken oldToken = new VerificationToken("oldHash", testUser);
             when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
             when(verificationTokenRepository.findByUser(testUser)).thenReturn(Optional.of(oldToken));
+            when(frontendProperties.getUrl()).thenReturn("http://localhost");
+            when(objectMapper.writeValueAsString(any())).thenReturn("{}");
 
             userService.verifyUserEmail(1L);
 
             verify(verificationTokenRepository).delete(oldToken);
             verify(verificationTokenRepository).save(any(VerificationToken.class));
+            verify(outboxEventRepository).save(any(OutboxEvent.class));
         }
 
         @Test

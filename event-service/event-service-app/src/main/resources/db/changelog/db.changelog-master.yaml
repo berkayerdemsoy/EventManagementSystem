@@ -5,4 +5,6 @@ databaseChangeLog:
       file: db/changelog/v1.0.1-insert-fix-categories.yaml
   - include:
       file: db/changelog/v1.0.2-insert-dummy-data.yaml
+  - include:
+      file: db/changelog/v1.0.3-create-outbox-events.yaml
 
