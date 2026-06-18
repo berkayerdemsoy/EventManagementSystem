@@ -70,8 +70,12 @@ public class UserServiceImpl implements UserService {
         return userMapper.toResponseDto(user);
     }
     
+    @Transactional
     @Override
     public UserResponseDto createUser(UserCreateDto dto) {
+        // CPU-bound işlem transaction'dan önce yapılır; DB connection'ı BCrypt süresince tutulmaz.
+        String encodedPassword = passwordEncoder.encode(dto.getPassword());
+
         if(userRepository.existsByUsernameIgnoreCase(dto.getUsername())) {
             throw new AlreadyExistsException("User with this username already exists");
         }
@@ -87,7 +91,7 @@ public class UserServiceImpl implements UserService {
         UserProfile userProfile = userMapper.toUserProfile(dto);
         user.setUserProfile(userProfile);
         userProfile.setUser(user);
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setPassword(encodedPassword);
 
         return userMapper.toResponseDto(userRepository.save(user));
     }
