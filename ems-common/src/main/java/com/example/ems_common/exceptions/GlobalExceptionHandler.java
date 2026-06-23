@@ -89,7 +89,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({CannotJoinOwnEventException.class})
     public ResponseEntity<ErrorResponseDto> handleCannotJoinOwnEventException(CannotJoinOwnEventException ex,
-                                                                              HttpServletRequest request) {
+                                                                               HttpServletRequest request) {
         ErrorResponseDto error = new ErrorResponseDto(
                 "CANNOT_JOIN_OWN_EVENT",
                 ex.getMessage(),
@@ -99,6 +99,21 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
+                .body(error);
+    }
+
+    @ExceptionHandler({EventAlreadyEndedException.class})
+    public ResponseEntity<ErrorResponseDto> handleEventAlreadyEndedException(EventAlreadyEndedException ex,
+                                                                             HttpServletRequest request) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                "EVENT_ALREADY_ENDED",
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST.value(),
+                LocalDateTime.now(),
+                request.getRequestURI()
+        );
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
                 .body(error);
     }
 
