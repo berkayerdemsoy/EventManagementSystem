@@ -95,12 +95,13 @@ public class UserServiceImpl implements UserService {
 
         return userMapper.toResponseDto(userRepository.save(user));
     }
+    @Transactional
     @Override
     public UserResponseDto updateUser(Long id, UserUpdateDto dto) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found"));
         userMapper.updateUserFromDto(dto, user);
         userMapper.updateUserProfileFromDto(dto, user.getUserProfile());
-        return userMapper.toResponseDto(userRepository.save(user));
+        return userMapper.toResponseDto(user);
     }
 
     @Override
@@ -117,7 +118,6 @@ public class UserServiceImpl implements UserService {
             throw new ForbiddenException("User is not verified");
         }
         user.setRole(Roles.EVENT_OWNER);
-        userRepository.save(user);
         String newToken = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
         return new AuthResponseDto(newToken, userMapper.toResponseDto(user));
     }
@@ -210,7 +210,6 @@ public class UserServiceImpl implements UserService {
 
         if (!user.isVerified()) {
             user.setVerified(true);
-            userRepository.save(user);
         } else {
             verificationTokenRepository.delete(verificationToken);
         }
@@ -235,7 +234,6 @@ public class UserServiceImpl implements UserService {
         }
 
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
-        userRepository.save(user);
     }
 
 
