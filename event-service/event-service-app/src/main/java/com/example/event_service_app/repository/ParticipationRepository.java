@@ -1,6 +1,7 @@
 package com.example.event_service_app.repository;
 
 import com.example.event_service_app.entity.Participation;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,16 +17,28 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     @Modifying
     @Query("DELETE FROM Participation p WHERE p.event.id = :eventId")
     void deleteByEventId(@Param("eventId") Long eventId);
+
+    // ─── Event'iyle birlikte çeken versiyonlar (N+1 önlemek için) ─────────────
+
+    @EntityGraph(attributePaths = {"event"})
+    List<Participation> findByEventIdWithEvent(Long eventId);
+
+    @EntityGraph(attributePaths = {"event"})
+    List<Participation> findByParticipantIdWithEvent(Long participantId);
+
+    // ─── Temel versiyonlar (event detayı ihtiyaç edilmeyen yerlerde kullanılır) ─
+
     List<Participation> findByEventId(Long eventId);
     List<Participation> findByParticipantId(Long participantId);
 
     /**
      * Reminder job için: başlangıcı [now+23h, now+25h] arasında olan
      * eventlerin henüz reminder gönderilmemiş participations'larını döner.
+     * JOIN FETCH ile event ilişkisi tek sorguda yüklenir (N+1 önlenir).
      */
     @Query("""
             SELECT p FROM Participation p
-            JOIN p.event e
+            JOIN FETCH p.event e
             WHERE e.startDate BETWEEN :from AND :to
               AND p.reminderSent = false
             """)

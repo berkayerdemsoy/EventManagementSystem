@@ -102,7 +102,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public EventResponseDto getEventById(Long id) {
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new NotFoundException("Event not found with id: " + id));
         return eventMapper.toResponseDto(event);
     }
@@ -110,7 +110,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventResponseDto updateEvent(Long id, EventUpdateDto dto) {
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdWithCategory(id)
                 .orElseThrow(() -> new NotFoundException("Event not found with id: " + id));
 
         Long currentUserId = SecurityUtils.getCurrentUserId();
@@ -150,22 +150,22 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public Page<EventResponseDto> getAllEvents(Pageable pageable) {
-        return eventRepository.findAll(pageable).map(eventMapper::toResponseDto);
+        return eventRepository.findAllWithCategory(pageable).map(eventMapper::toResponseDto);
     }
 
     @Override
     public Page<EventResponseDto> getEventsByCategory(Long categoryId, Pageable pageable) {
-        return eventRepository.findByCategoryId(categoryId, pageable).map(eventMapper::toResponseDto);
+        return eventRepository.findByCategoryIdWithCategory(categoryId, pageable).map(eventMapper::toResponseDto);
     }
 
     @Override
     public Page<EventResponseDto> getEventsByCity(String city, Pageable pageable) {
-        return eventRepository.findByCityIgnoreCase(city, pageable).map(eventMapper::toResponseDto);
+        return eventRepository.findByCityIgnoreCaseWithCategory(city, pageable).map(eventMapper::toResponseDto);
     }
 
     @Override
     public Page<EventResponseDto> getEventsByDateRange(LocalDateTime start, LocalDateTime end, Pageable pageable) {
-        return eventRepository.findByStartDateBetween(start, end, pageable).map(eventMapper::toResponseDto);
+        return eventRepository.findByStartDateBetweenWithCategory(start, end, pageable).map(eventMapper::toResponseDto);
     }
 
     // ─── gRPC Helper Metotları ────────────────────────────────────────────────
