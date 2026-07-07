@@ -19,7 +19,7 @@ public class VerificationToken {
     @Column(unique = true, nullable = false,name = "token_hash")
     private String tokenHash;
 
-    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
+    @OneToOne(targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
     private User user;
 
