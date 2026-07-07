@@ -106,7 +106,7 @@ public class ParticipationServiceImpl implements ParticipationService {
 
     @Override
     public List<ParticipationResponseDto> getByEventId(Long eventId) {
-        return participationRepository.findByEventIdWithEvent(eventId)
+        return participationRepository.findByEventId(eventId)
                 .stream()
                 .map(this::toResponseDto)
                 .toList();
@@ -115,7 +115,7 @@ public class ParticipationServiceImpl implements ParticipationService {
     @Override
     public List<ParticipationResponseDto> getMyTickets() {
         Long currentUserId = SecurityUtils.getCurrentUserId();
-        return participationRepository.findByParticipantIdWithEvent(currentUserId)
+        return participationRepository.findByParticipantId(currentUserId)
                 .stream()
                 .map(this::toResponseDto)
                 .toList();

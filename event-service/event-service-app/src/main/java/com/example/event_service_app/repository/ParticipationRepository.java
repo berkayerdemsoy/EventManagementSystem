@@ -19,16 +19,13 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     void deleteByEventId(@Param("eventId") Long eventId);
 
     // ─── Event'iyle birlikte çeken versiyonlar (N+1 önlemek için) ─────────────
+    // EntityGraph ile aynı sorguda event JOIN edilir; response DTO'daki
+    // eventTitle alanına erişildiğinde ek SELECT atılmaz.
 
     @EntityGraph(attributePaths = {"event"})
-    List<Participation> findByEventIdWithEvent(Long eventId);
-
-    @EntityGraph(attributePaths = {"event"})
-    List<Participation> findByParticipantIdWithEvent(Long participantId);
-
-    // ─── Temel versiyonlar (event detayı ihtiyaç edilmeyen yerlerde kullanılır) ─
-
     List<Participation> findByEventId(Long eventId);
+
+    @EntityGraph(attributePaths = {"event"})
     List<Participation> findByParticipantId(Long participantId);
 
     /**
@@ -48,4 +45,3 @@ public interface ParticipationRepository extends JpaRepository<Participation, Lo
     );
 
 }
-
